@@ -1,0 +1,12 @@
+datasets:
+  coco_vqa:
+    data_type: images # [images|videos|features]
+
+    build_info:
+      annotations:
+        train:
+          storage:
+              - /data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_train.json
+              - /data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_val.json
+      images:
+          storage: /data/kiriti/MiniGPT-4/dataset/coco/images

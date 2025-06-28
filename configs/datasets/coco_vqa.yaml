@@ -1,0 +1,5 @@
+coco_vqa:
+  image_path: "/data/kiriti/MiniGPT-4/dataset/coco/images"
+  question_path: "/data/kiriti/MiniGPT-4/dataset/coco/annotations/v2_OpenEnded_mscoco_train2014_questions.json"
+  answer_path: "/data/kiriti/MiniGPT-4/dataset/coco/annotations/v2_mscoco_train2014_annotations.json"
+  split: "train"

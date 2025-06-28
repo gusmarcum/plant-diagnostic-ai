@@ -1,0 +1,20 @@
+# Ignore giant files & folders
+llama_weights/
+dataset/
+wandb/
+output/
+checkpoints/
+*.zip
+*.bin
+*.safetensors
+*.pth
+*.wandb
+*.log
+
+# Usual Python stuff
+__pycache__/
+*.pyc
+
+# IDE files
+.vscode/
+.idea/

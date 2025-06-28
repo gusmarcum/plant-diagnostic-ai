@@ -1,0 +1,75 @@
+model:
+  arch: minigpt_v2
+  model_type: pretrain
+  max_txt_len: 128
+  end_sym: "</s>"
+  llama_model: "/data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"
+  ckpt: "/data/kiriti/MiniGPT-4/checkpoints/checkpoint_stage2.pth"
+  use_grad_checkpoint: True
+  chat_template: True
+  lora_r: 64
+  lora_alpha: 16
+
+datasets:
+  coco_vqa:
+    data_type: vqa
+    build_info:
+      annotations:
+        train:
+          storage: "/data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_train_fixed.json"
+        val:
+          storage: "/data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_val_fixed.json"
+      images:
+        train: "/data/kiriti/MiniGPT-4/dataset/coco/images/train2014"
+        val: "/data/kiriti/MiniGPT-4/dataset/coco/images/val2014"
+    vis_processor:
+      train:
+        name: "blip2_image_train"
+        image_size: 224
+      eval:
+        name: "blip2_image_eval"
+        image_size: 224
+    text_processor:
+      train:
+        name: "blip_caption"
+      eval:
+        name: "blip_caption"
+    batch_size: 2  # Physical batch size per GPU
+
+run:
+  task: image_text_pretrain
+  # Gradient accumulation settings
+  accumulation_steps: 4  # Effective batch size = batch_size * accumulation_steps
+  max_grad_norm: 1.0    # Maximum gradient norm for clipping
+
+  # Learning rate settings
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 1e-6
+  warmup_lr: 1e-6
+  warmup_steps: 1000
+
+  # Training settings
+  weight_decay: 0.05
+  max_epoch: 10
+  num_workers: 2
+  iters_per_epoch: 1000
+  seed: 42
+
+  # Hardware and distribution settings
+  batch_size_train: 6
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  amp: False
+
+  # Output and logging
+  output_dir: "/data/kiriti/MiniGPT-4/output/minigptv2_finetune"
+  wandb_log: True
+  job_name: "minigptv2_finetune_vqa"
+
+  # Checkpoint settings
+  resume_ckpt_path: null
+  evaluate: False
+  train_splits: ["train"]

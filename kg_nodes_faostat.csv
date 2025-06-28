@@ -1,0 +1,516 @@
+id,label,name
+0,Crop,"Almonds, in shell"
+1,Crop,"Anise, badian, coriander, cumin, caraway, fennel and juniper berries, raw"
+2,Crop,Apples
+3,Crop,Apricots
+4,Crop,Barley
+5,Crop,Butter and ghee of sheep milk
+6,Crop,Butter of cow milk
+7,Crop,"Buttermilk, dry"
+8,Crop,Cantaloupes and other melons
+9,Crop,"Cattle fat, unrendered"
+10,Crop,"Cheese from milk of goats, fresh or processed"
+11,Crop,"Cheese from milk of sheep, fresh or processed"
+12,Crop,"Cotton lint, ginned"
+13,Crop,Cotton seed
+14,Crop,Cottonseed oil
+15,Crop,"Edible offal of cattle, fresh, chilled or frozen"
+16,Crop,"Edible offal of goat, fresh, chilled or frozen"
+17,Crop,"Edible offal of sheep, fresh, chilled or frozen"
+18,Crop,"Edible offals of camels and other camelids, fresh, chilled or frozen"
+19,Crop,Fat of camels
+20,Crop,Figs
+21,Crop,"Game meat, fresh, chilled or frozen"
+22,Crop,"Goat fat, unrendered"
+23,Crop,Grapes
+24,Crop,"Hen eggs in shell, fresh"
+25,Crop,Linseed
+26,Crop,Maize (corn)
+27,Crop,"Meat of camels, fresh or chilled"
+28,Crop,"Meat of cattle with the bone, fresh or chilled"
+29,Crop,"Meat of chickens, fresh or chilled"
+30,Crop,"Meat of goat, fresh or chilled"
+31,Crop,"Meat of sheep, fresh or chilled"
+32,Crop,Millet
+33,Crop,Molasses
+34,Crop,Mustard seed
+35,Crop,Natural honey
+36,Crop,Oil of linseed
+37,Crop,Oil of sesame seed
+38,Crop,Olive oil
+39,Crop,Olives
+40,Crop,"Onions and shallots, dry (excluding dehydrated)"
+41,Crop,Oranges
+42,Crop,Other berries and fruits of the genus vaccinium n.e.c.
+43,Crop,"Other citrus fruit, n.e.c."
+44,Crop,"Other fruits, n.e.c."
+45,Crop,"Other nuts (excluding wild edible nuts and groundnuts), in shell, n.e.c."
+46,Crop,Other pulses n.e.c.
+47,Crop,"Other stimulant, spice and aromatic crops, n.e.c."
+48,Crop,Other stone fruits
+49,Crop,"Other vegetables, fresh n.e.c."
+50,Crop,Peaches and nectarines
+51,Crop,Pears
+52,Crop,"Pistachios, in shell"
+53,Crop,Plums and sloes
+54,Crop,Potatoes
+55,Crop,Raw cane or beet sugar (centrifugal only)
+56,Crop,Raw hides and skins of cattle
+57,Crop,Raw hides and skins of goats or kids
+58,Crop,Raw hides and skins of sheep or lambs
+59,Crop,Raw milk of camel
+60,Crop,Raw milk of cattle
+61,Crop,Raw milk of goats
+62,Crop,Raw milk of sheep
+63,Crop,Raw silk (not thrown)
+64,Crop,Rice
+65,Crop,"Seed cotton, unginned"
+66,Crop,Sesame seed
+67,Crop,"Sheep fat, unrendered"
+68,Crop,"Shorn wool, greasy, including fleece-washed shorn wool"
+69,Crop,Silk-worm cocoons suitable for reeling
+70,Crop,Skim milk of cows
+71,Crop,Sugar beet
+72,Crop,Sugar cane
+73,Crop,Sunflower seed
+74,Crop,"Sunflower-seed oil, crude"
+75,Crop,"Walnuts, in shell"
+76,Crop,Watermelons
+77,Crop,Wheat
+78,Crop,"Beef and Buffalo Meat, primary"
+79,Crop,Butter and Ghee
+80,Crop,"Cereals, primary"
+81,Crop,Cheese (All Kinds)
+82,Crop,"Citrus Fruit, Total"
+83,Crop,Eggs Primary
+84,Crop,"Fibre Crops, Fibre Equivalent"
+85,Crop,Fruit Primary
+86,Crop,"Meat, Poultry"
+87,Crop,"Meat, Total"
+88,Crop,"Milk, Total"
+89,Crop,"Oilcrops, Cake Equivalent"
+90,Crop,"Oilcrops, Oil Equivalent"
+91,Crop,"Pulses, Total"
+92,Crop,"Roots and Tubers, Total"
+93,Crop,Sheep and Goat Meat
+94,Crop,"Skim Milk & Buttermilk, Dry"
+95,Crop,Sugar Crops Primary
+96,Crop,"Treenuts, Total"
+97,Crop,Vegetables Primary
+98,Crop,"Beans, dry"
+99,Crop,"Beer of barley, malted"
+100,Crop,"Broad beans and horse beans, dry"
+101,Crop,"Broad beans and horse beans, green"
+102,Crop,"Buffalo fat, unrendered"
+103,Crop,Cabbages
+104,Crop,Carrots and turnips
+105,Crop,Cauliflowers and broccoli
+106,Crop,Cheese from whole cow milk
+107,Crop,Cherries
+108,Crop,"Chestnuts, in shell"
+109,Crop,"Chillies and peppers, green (Capsicum spp. and Pimenta spp.)"
+110,Crop,Cucumbers and gherkins
+111,Crop,Dates
+112,Crop,"Edible offal of buffalo, fresh, chilled or frozen"
+113,Crop,"Edible offal of pigs, fresh, chilled or frozen"
+114,Crop,"Edible offals of horses and other equines,  fresh, chilled or frozen"
+115,Crop,Eggplants (aubergines)
+116,Crop,"Eggs from other birds in shell, fresh, n.e.c."
+117,Crop,Fat of pigs
+118,Crop,Green garlic
+119,Crop,"Green tea (not fermented), black tea (fermented) and partly fermented tea, in immediate packings of a content not exceeding 3 kg"
+120,Crop,Groundnut oil
+121,Crop,Hop cones
+122,Crop,Leeks and other alliaceous vegetables
+123,Crop,Lemons and limes
+124,Crop,Lettuce and chicory
+125,Crop,"Meat of pig with the bone, fresh or chilled"
+126,Crop,"Meat of turkeys, fresh or chilled"
+127,Crop,Mushrooms and truffles
+128,Crop,Oats
+129,Crop,Okra
+130,Crop,"Onions and shallots, green"
+131,Crop,"Other beans, green"
+132,Crop,"Other meat n.e.c. (excluding mammals), fresh, chilled or frozen"
+133,Crop,"Peas, green"
+134,Crop,"Pumpkins, squash and gourds"
+135,Crop,Quinces
+136,Crop,Raw hides and skins of buffaloes
+137,Crop,Raw milk of buffalo
+138,Crop,Rye
+139,Crop,Sorghum
+140,Crop,Sour cherries
+141,Crop,Soya bean oil
+142,Crop,Soya beans
+143,Crop,Spinach
+144,Crop,Strawberries
+145,Crop,"Tangerines, mandarins, clementines"
+146,Crop,Tomatoes
+147,Crop,Unmanufactured tobacco
+148,Crop,Vetches
+149,Crop,Wine
+150,Crop,Artichokes
+151,Crop,Bananas
+152,Crop,Cheese from skimmed cow milk
+153,Crop,"Chick peas, dry"
+154,Crop,"Chillies and peppers, dry (Capsicum spp., Pimenta spp.), raw"
+155,Crop,"Groundnuts, excluding shelled"
+156,Crop,"Horse meat, fresh or chilled"
+157,Crop,"Lentils, dry"
+158,Crop,Locust beans (carobs)
+159,Crop,Margarine and shortening
+160,Crop,"Meat of rabbits and hares, fresh or chilled"
+161,Crop,"Other tropical fruits, n.e.c."
+162,Crop,"Peas, dry"
+163,Crop,Pomelos and grapefruits
+164,Crop,Rape or colza seed
+165,Crop,"Rapeseed or canola oil, crude"
+166,Crop,Triticale
+167,Crop,Avocados
+168,Crop,Beeswax
+169,Crop,"Cashew nuts, in shell"
+170,Crop,"Cassava, fresh"
+171,Crop,Castor oil seeds
+172,Crop,Cocoa beans
+173,Crop,"Coffee, green"
+174,Crop,"Kenaf, and other textile bast fibres, raw or retted"
+175,Crop,"Mangoes, guavas and mangosteens"
+176,Crop,Oil of palm kernel
+177,Crop,Oil palm fruit
+178,Crop,Palm kernels
+179,Crop,Palm oil
+180,Crop,"Pig fat, rendered"
+181,Crop,Pineapples
+182,Crop,"Sisal, raw"
+183,Crop,Sweet potatoes
+184,Crop,Taro
+185,Crop,Yams
+186,Crop,Asparagus
+187,Crop,Canary seed
+188,Crop,Cereals n.e.c.
+189,Crop,"Cream, fresh"
+190,Crop,"Flax, raw or retted"
+191,Crop,Ghee from cow milk
+192,Crop,Lupins
+193,Crop,Maté leaves
+194,Crop,"Meat of asses, fresh or chilled"
+195,Crop,"Meat of ducks, fresh or chilled"
+196,Crop,"Meat of geese, fresh or chilled"
+197,Crop,"Meat of mules, fresh or chilled"
+198,Crop,Oil of maize
+199,Crop,"Other fibre crops, raw, n.e.c."
+200,Crop,"Other oil seeds, n.e.c."
+201,Crop,Papayas
+202,Crop,"Peppermint, spearmint"
+203,Crop,Safflower seed
+204,Crop,"Safflower-seed oil, crude"
+205,Crop,Skim milk and whey powder
+206,Crop,String beans
+207,Crop,Tallow
+208,Crop,Tea leaves
+209,Crop,Tung nuts
+210,Crop,"Whey, dry"
+211,Crop,Whole milk powder
+212,Crop,"Whole milk, condensed"
+213,Crop,"Whole milk, evaporated"
+214,Crop,Evaporated & Condensed Milk
+215,Crop,"Hazelnuts, in shell"
+216,Crop,Blueberries
+217,Crop,"Cow peas, dry"
+218,Crop,Currants
+219,Crop,Green corn (maize)
+220,Crop,Kiwi fruit
+221,Crop,Persimmons
+222,Crop,Raspberries
+223,Crop,Mixed grain
+224,Crop,"Skim milk, condensed"
+225,Crop,"True hemp, raw or retted"
+226,Crop,"Whey, condensed"
+227,Crop,Yoghurt
+228,Crop,Cranberries
+229,Crop,"Coconuts, in shell"
+230,Crop,"Pigeon peas, dry"
+231,Crop,Plantains and cooking bananas
+232,Crop,Areca nuts
+233,Crop,Butter of buffalo milk
+234,Crop,Coconut oil
+235,Crop,"Coir, raw"
+236,Crop,Ghee from buffalo milk
+237,Crop,"Ginger, raw"
+238,Crop,"Jute, raw or retted"
+239,Crop,"Meat of buffalo, fresh or chilled"
+240,Crop,Natural rubber in primary forms
+241,Crop,Other sugar crops n.e.c.
+242,Crop,Buckwheat
+243,Crop,Other pome fruits
+244,Crop,"Edible roots and tubers with high starch or inulin content, n.e.c., fresh"
+245,Crop,Yautia
+246,Crop,Fonio
+247,Crop,Karite nuts (sheanuts)
+248,Crop,Kola nuts
+249,Crop,Melonseed
+250,Crop,"Pepper (Piper spp.), raw"
+251,Crop,"Nutmeg, mace, cardamoms, raw"
+252,Crop,Quinoa
+253,Crop,"Brazil nuts, in shell"
+254,Crop,"Meat of other domestic camelids, fresh or chilled"
+255,Crop,"Meat of other domestic rodents, fresh or chilled"
+256,Crop,"Pyrethrum, dried flowers"
+257,Crop,Chicory roots
+258,Crop,Cashewapple
+259,Crop,"Ramie, raw or retted"
+260,Crop,Cassava leaves
+261,Crop,"Bambara beans, dry"
+262,Crop,Hempseed
+263,Crop,"Skim milk, evaporated"
+264,Crop,"Cheese from milk of buffalo, fresh or processed"
+265,Crop,"Cinnamon and cinnamon-tree flowers, raw"
+266,Crop,"Cloves (whole stems), raw"
+267,Crop,"Meat of pigeons and other birds n.e.c., fresh, chilled or frozen"
+268,Crop,Tallowtree seeds
+269,Crop,"Vanilla, raw"
+270,Crop,"Agave fibres, raw, n.e.c."
+271,Crop,"Abaca, manila hemp, raw"
+272,Crop,"Snails, fresh, chilled, frozen, dried, salted or in brine, except sea snails"
+273,Crop,Poppy seed
+274,Crop,"Kapok fibre, raw"
+275,Crop,Kapok fruit
+276,Crop,Kapokseed in shell
+277,Crop,Gooseberries
+278,Crop,Jojoba seeds
+279,Region,Afghanistan
+280,Region,Albania
+281,Region,Algeria
+282,Region,Angola
+283,Region,Antigua and Barbuda
+284,Region,Argentina
+285,Region,Armenia
+286,Region,Australia
+287,Region,Austria
+288,Region,Azerbaijan
+289,Region,Bahamas
+290,Region,Bahrain
+291,Region,Bangladesh
+292,Region,Barbados
+293,Region,Belarus
+294,Region,Belgium
+295,Region,Belize
+296,Region,Benin
+297,Region,Bhutan
+298,Region,Bolivia (Plurinational State of)
+299,Region,Bosnia and Herzegovina
+300,Region,Botswana
+301,Region,Brazil
+302,Region,Brunei Darussalam
+303,Region,Bulgaria
+304,Region,Burkina Faso
+305,Region,Burundi
+306,Region,Cabo Verde
+307,Region,Cambodia
+308,Region,Cameroon
+309,Region,Canada
+310,Region,Central African Republic
+311,Region,Chad
+312,Region,Chile
+313,Region,China
+314,Region,"China, Hong Kong SAR"
+315,Region,"China, Macao SAR"
+316,Region,"China, mainland"
+317,Region,"China, Taiwan Province of"
+318,Region,Colombia
+319,Region,Comoros
+320,Region,Congo
+321,Region,Cook Islands
+322,Region,Costa Rica
+323,Region,Côte d'Ivoire
+324,Region,Croatia
+325,Region,Cuba
+326,Region,Cyprus
+327,Region,Czechia
+328,Region,Democratic People's Republic of Korea
+329,Region,Democratic Republic of the Congo
+330,Region,Denmark
+331,Region,Djibouti
+332,Region,Dominica
+333,Region,Dominican Republic
+334,Region,Ecuador
+335,Region,Egypt
+336,Region,El Salvador
+337,Region,Equatorial Guinea
+338,Region,Eritrea
+339,Region,Estonia
+340,Region,Eswatini
+341,Region,Ethiopia
+342,Region,Faroe Islands
+343,Region,Fiji
+344,Region,Finland
+345,Region,France
+346,Region,French Polynesia
+347,Region,Gabon
+348,Region,Gambia
+349,Region,Georgia
+350,Region,Germany
+351,Region,Ghana
+352,Region,Greece
+353,Region,Grenada
+354,Region,Guatemala
+355,Region,Guinea
+356,Region,Guinea-Bissau
+357,Region,Guyana
+358,Region,Haiti
+359,Region,Honduras
+360,Region,Hungary
+361,Region,Iceland
+362,Region,India
+363,Region,Indonesia
+364,Region,Iran (Islamic Republic of)
+365,Region,Iraq
+366,Region,Ireland
+367,Region,Israel
+368,Region,Italy
+369,Region,Jamaica
+370,Region,Japan
+371,Region,Jordan
+372,Region,Kazakhstan
+373,Region,Kenya
+374,Region,Kiribati
+375,Region,Kuwait
+376,Region,Kyrgyzstan
+377,Region,Lao People's Democratic Republic
+378,Region,Latvia
+379,Region,Lebanon
+380,Region,Lesotho
+381,Region,Liberia
+382,Region,Libya
+383,Region,Lithuania
+384,Region,Luxembourg
+385,Region,Madagascar
+386,Region,Malawi
+387,Region,Malaysia
+388,Region,Maldives
+389,Region,Mali
+390,Region,Malta
+391,Region,Marshall Islands
+392,Region,Mauritania
+393,Region,Mauritius
+394,Region,Mexico
+395,Region,Micronesia (Federated States of)
+396,Region,Mongolia
+397,Region,Montenegro
+398,Region,Morocco
+399,Region,Mozambique
+400,Region,Myanmar
+401,Region,Namibia
+402,Region,Nauru
+403,Region,Nepal
+404,Region,Netherlands (Kingdom of the)
+405,Region,New Caledonia
+406,Region,New Zealand
+407,Region,Nicaragua
+408,Region,Niger
+409,Region,Nigeria
+410,Region,Niue
+411,Region,North Macedonia
+412,Region,Norway
+413,Region,Oman
+414,Region,Pakistan
+415,Region,Palestine
+416,Region,Panama
+417,Region,Papua New Guinea
+418,Region,Paraguay
+419,Region,Peru
+420,Region,Philippines
+421,Region,Poland
+422,Region,Portugal
+423,Region,Puerto Rico
+424,Region,Qatar
+425,Region,Republic of Korea
+426,Region,Republic of Moldova
+427,Region,Romania
+428,Region,Russian Federation
+429,Region,Rwanda
+430,Region,Saint Kitts and Nevis
+431,Region,Saint Lucia
+432,Region,Saint Vincent and the Grenadines
+433,Region,Samoa
+434,Region,Sao Tome and Principe
+435,Region,Saudi Arabia
+436,Region,Senegal
+437,Region,Serbia
+438,Region,Seychelles
+439,Region,Sierra Leone
+440,Region,Singapore
+441,Region,Slovakia
+442,Region,Slovenia
+443,Region,Solomon Islands
+444,Region,Somalia
+445,Region,South Africa
+446,Region,South Sudan
+447,Region,Spain
+448,Region,Sri Lanka
+449,Region,Sudan
+450,Region,Suriname
+451,Region,Sweden
+452,Region,Switzerland
+453,Region,Syrian Arab Republic
+454,Region,Tajikistan
+455,Region,Thailand
+456,Region,Timor-Leste
+457,Region,Togo
+458,Region,Tokelau
+459,Region,Tonga
+460,Region,Trinidad and Tobago
+461,Region,Tunisia
+462,Region,Türkiye
+463,Region,Turkmenistan
+464,Region,Tuvalu
+465,Region,Uganda
+466,Region,Ukraine
+467,Region,United Arab Emirates
+468,Region,United Kingdom of Great Britain and Northern Ireland
+469,Region,United Republic of Tanzania
+470,Region,United States of America
+471,Region,Uruguay
+472,Region,Uzbekistan
+473,Region,Vanuatu
+474,Region,Venezuela (Bolivarian Republic of)
+475,Region,Viet Nam
+476,Region,Yemen
+477,Region,Zambia
+478,Region,Zimbabwe
+479,Region,World
+480,Region,Africa
+481,Region,Eastern Africa
+482,Region,Middle Africa
+483,Region,Northern Africa
+484,Region,Southern Africa
+485,Region,Western Africa
+486,Region,Americas
+487,Region,Northern America
+488,Region,Central America
+489,Region,Caribbean
+490,Region,South America
+491,Region,Asia
+492,Region,Central Asia
+493,Region,Eastern Asia
+494,Region,Southern Asia
+495,Region,South-eastern Asia
+496,Region,Western Asia
+497,Region,Europe
+498,Region,Eastern Europe
+499,Region,Northern Europe
+500,Region,Southern Europe
+501,Region,Western Europe
+502,Region,Oceania
+503,Region,Australia and New Zealand
+504,Region,Melanesia
+505,Region,Micronesia
+506,Region,Polynesia
+507,Region,European Union (27)
+508,Region,Least Developed Countries
+509,Region,Land Locked Developing Countries
+510,Region,Small Island Developing States
+511,Region,Low Income Food Deficit Countries
+512,Region,Net Food Importing Developing Countries
+513,Element,Area harvested
+514,Element,Production
