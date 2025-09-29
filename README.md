@@ -32,7 +32,7 @@ An image-based **strawberry plant diagnostician** that pairs a lightweight **Res
 ## ⚙️ Setup
 
 ```bash
-git clone https://github.com/adainstarks/minigpt4plantdiagnostic.git
+git clone https://github.com/adainstarks/strawberry-diagnostic.git
 cd MiniGPT-4
 
 # Pick the CUDA wheel matching your system:
