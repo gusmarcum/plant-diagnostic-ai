@@ -9,7 +9,6 @@ An image-based **strawberry plant diagnostician** that pairs a lightweight **Res
 ## ✨ Features
 
 - **Dual engine**: ResNet classifier + MiniGPT‑v2 reasoning (LLM explains; it does **not** override a high‑confidence label)
-- **One‑Diagnosis guarantee**: post‑filter enforces **exactly one** `Diagnosis:` line (no duplicates or “Dx:” echoes)
 - **Confidence badge** on each result (🟢 ≥0.90, 🟡 ≥0.70, 🔴 else)
 - **Two chat panes**: Standard analysis and “Enhanced” (web context optional; can be disabled)
 - **Interactive FAOSTAT graph** (Plotly + NetworkX) with full‑graph and neighborhood views
