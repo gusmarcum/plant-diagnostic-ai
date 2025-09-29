@@ -123,7 +123,9 @@ Gradio will print a local URL to open in your browser.
 3. If confidence is low, the system uses a cautious prompt that avoids disease names and focuses on evidence. 
 4. A compact answer is produced; a **confidence badge** is shown when available. 
 5. Optional **Enhanced** pane can append brief web context (requires SERP key).
-
+<img width="1024" height="545" alt="Screenshot 2025-09-28 223916" src="https://github.com/user-attachments/assets/decacaea-d8dc-4820-b986-75183cdbf9db" />
+<img width="980" height="469" alt="Screenshot 2025-09-28 223816" src="https://github.com/user-attachments/assets/cf6e3cf5-0509-4fb5-90f1-fa987f476e68" />
+<img width="1056" height="734" alt="Screenshot 2025-09-28 223732" src="https://github.com/user-attachments/assets/0eec2277-e38e-47de-9069-a5881e86e2bb" />
 ---
 
 ## 📊 Knowledge Graph
