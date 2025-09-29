@@ -170,7 +170,6 @@ kg_relationships_faostat.csv
 ## 📜 License & credits
 
 - Builds on MiniGPT‑v2 / MiniGPT‑4 and LLaMA‑2.
-- Add your own **LICENSE** file if you plan to distribute your modifications.
 
 ---
 
