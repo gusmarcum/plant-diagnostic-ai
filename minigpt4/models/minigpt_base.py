@@ -31,14 +31,15 @@ class MiniGPTBase(BaseModel):
             prompt_template="",
             end_sym='\n',
             low_resource=False,  # use 8 bit and put vit in cpu
-            device_8bit=0,  # the device of 8bit model should be set when loading and cannot be changed anymore.
-            lora_r=0,  # lora_r means lora is not used
+            device_8bit=0,       # the device of 8bit model should be set when loading and cannot be changed anymore.
+            lora_r=0,            # lora_r means lora is not used
             lora_target_modules=["q_proj", "v_proj"],
             lora_alpha=16,
             lora_dropout=0.05,
     ):
         super().__init__()
 
+        # 1) Init LLaMA (optionally with LoRA)
         self.llama_model, self.llama_tokenizer = self.init_llm(
             llama_model_path=llama_model,
             low_resource=low_resource,
@@ -49,18 +50,26 @@ class MiniGPTBase(BaseModel):
             lora_dropout=lora_dropout,
         )
 
-        # Freeze LLaMA weights
-        logging.info("Freezing LLaMA parameters")
-        for param in self.llama_model.parameters():
-            param.requires_grad = False
-        logging.info("LLaMA parameters frozen")
+        # 2) Freeze base LLaMA weights; keep LoRA adapters trainable (if present)
+        logging.info("Freezing base LLaMA; keeping LoRA adapters trainable (if present)")
+        lora_trainable = 0
+        for name, p in self.llama_model.named_parameters():
+            if "lora_" in name.lower():   # e.g. lora_A.weight / lora_B.weight
+                p.requires_grad = True
+                lora_trainable += 1
+            else:
+                p.requires_grad = False
+        logging.info(f"LoRA trainable tensors: {lora_trainable}")
 
-        # Initialize vision encoder
+        # 3) Initialize vision encoder BEFORE trying to freeze it
         self.visual_encoder, self.ln_vision = self.init_vision_encoder(
             vit_model, img_size, drop_path_rate, use_grad_checkpoint, vit_precision, freeze_vit
         )
 
-        # Explicitly freeze vision encoder if specified
+        _trainables = [n for n, p in self.named_parameters() if p.requires_grad]
+        logging.info("Trainables count=%d (sample=%s)", len(_trainables), ", ".join(_trainables[:12]))
+
+        # 4) Explicitly freeze vision encoder if specified
         if freeze_vit:
             logging.info("Freezing vision encoder parameters")
             for param in self.visual_encoder.parameters():
@@ -77,18 +86,19 @@ class MiniGPTBase(BaseModel):
         else:
             logging.info("Vision encoder remains trainable")
 
-        # Memory optimization for frozen models
+        # 5) Memory optimization for frozen models
         if freeze_vit and vit_precision == "fp16":
             self.visual_encoder = self.visual_encoder.half()
             self.ln_vision = self.ln_vision.half()
             logging.info("Vision encoder converted to fp16")
 
+        # 6) Misc config
         self.max_txt_len = max_txt_len
         self.max_context_len = max_context_len
         self.end_sym = end_sym
-
         self.prompt_template = prompt_template
         self.prompt_list = []
+
 
     def vit_to_cpu(self):
         self.ln_vision.to("cpu")
@@ -338,9 +348,6 @@ class MiniGPTBase(BaseModel):
             )
         loss = outputs.loss
 
-        print(f"Forward outputs: {outputs}")
-        print(f"Loss from forward: {outputs.loss}")
-
         return {"loss": loss}
 
     def embed_tokens(self, token_ids):
@@ -444,3 +451,4 @@ class MiniGPTBase(BaseModel):
                 all_losses[i, num_cand[i]:] = 9999
         output_class_ranks = torch.argsort(all_losses, dim=-1)
         return output_class_ranks.tolist()
+

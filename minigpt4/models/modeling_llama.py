@@ -1,3 +1,5 @@
+import os
+local_rank = int(os.environ.get("LOCAL_RANK","0"))
 import math
 from typing import List, Optional, Tuple, Union
 

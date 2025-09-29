@@ -1,0 +1,213 @@
+import json
+import io
+import os
+from torch.utils.data import DataLoader
+"""
+Minimal eval for image_text_pretrain that works with DataLoader and MultiIterLoader.
+"""
+import logging
+import torch
+from minigpt4.common.registry import registry
+from minigpt4.tasks.base_task import BaseTask
+
+
+@registry.register_task("image_text_pretrain")
+class ImageTextPretrainTask(BaseTask):
+    def __init__(self):
+        super().__init__()
+        self.current_step = 0
+
+    @torch.no_grad()
+    
+def _make_indexable(ds):
+    # If it's a mapping-like object (has .keys/.values), use values
+    if hasattr(ds, "values") and callable(getattr(ds, "values", None)):
+        try:
+            ds = list(ds.values())
+        except Exception:
+            ds = list(ds)
+    # If it's iterable but not indexable, materialize as list
+    elif hasattr(ds, "__iter__") and not hasattr(ds, "__getitem__"):
+        ds = list(ds)
+    # Probe integer indexing; if it fails, materialize to list(ds)
+    try:
+        _ = ds[0]
+    except Exception:
+        try:
+            ds = list(ds)
+        except Exception:
+            # last resort: wrap a generator/iterable
+            ds = list(iter(ds))
+    return ds
+
+
+def evaluation(self, model, data_loader, cuda_enabled: bool = True):
+        """
+        Robust, full-dataset evaluator:
+        - Accepts a DataLoader, a Dataset, or a dict of splits (uses 'val' if present).
+        - Avoids repo-specific collate classes by defaulting to batch_size=1 + unwrap.
+        - Tries model.generate / model.inference / model.forward to produce a best-effort 'pred'.
+        - Writes per-sample JSONL and a small summary JSON.
+        - Returns a dict with num_samples and a placeholder agg_metrics.
+        """
+        # 1) Resolve device safely
+        try:
+            device = getattr(model, "device", None) or next(model.parameters()).device
+        except Exception:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        def _to(x):
+            if hasattr(x, "to"):
+                return x.to(device) if cuda_enabled else x
+            return x
+
+        # 2) Normalize the loader
+        ds = data_loader
+        # normalize when eval_only passes nested dicts, e.g. {'llava_conversation': {'val': ds}}
+        if isinstance(ds, dict):
+            if 'val' in ds:
+                ds = ds['val']
+            elif len(ds) == 1:
+                _only = next(iter(ds.values()))
+                if isinstance(_only, dict) and 'val' in _only:
+                    ds = _only['val']
+                else:
+                    ds = _only
+
+        # Force to indexable (handles mappings, generators, custom dict-like datasets)
+        ds = _make_indexable(ds)
+
+        if isinstance(ds, DataLoader):
+            loader = ds
+        else:
+            # ds is a Dataset or something indexable-iterable
+            # Use batch_size=1 and unwrap to dodge collate class pitfalls
+            loader = DataLoader(ds, batch_size=1, shuffle=False, num_workers=0,
+                                collate_fn=lambda b: b[0])
+
+        # 3) Output paths
+        # Try to get output_dir from self.config if present, else model.config, else default
+        out_dir = "./output"
+        try:
+            cfg = getattr(self, "config", None)
+            if cfg is not None:
+                root = cfg.get_config() if hasattr(cfg, "get_config") else getattr(cfg, "config", cfg)
+                out_dir = (getattr(root, "run", None) or {}).get("output_dir", out_dir) if not isinstance(root, dict) \
+                          else (root.get("run", {}) or {}).get("output_dir", out_dir)
+        except Exception:
+            pass
+        try:
+            if out_dir == "./output" and hasattr(model, "config"):
+                mc = model.config
+                if isinstance(mc, dict):
+                    out_dir = mc.get("output_dir", out_dir)
+        except Exception:
+            pass
+
+        dst_dir = os.path.join(out_dir, "result")
+        os.makedirs(dst_dir, exist_ok=True)
+        per_sample_path = os.path.join(dst_dir, "eval_val_per_sample.jsonl")
+        summary_path    = os.path.join(dst_dir, "eval_val_summary.json")
+
+        # 4) Choose a model inference hook (best-effort)
+        def _infer(m, batch):
+            # Try common inference entry points in order
+            for name in ("generate", "inference", "predict", "forward"):
+                fn = getattr(m, name, None)
+                if fn is None:
+                    continue
+                try:
+                    # Make a conservative call: just pass batch and/or known keys if it's a dict
+                    if isinstance(batch, dict):
+                        # Move tensors to device
+                        safe_batch = {k: _to(v) for k, v in batch.items()}
+                        return fn(**safe_batch) if name != "forward" else fn(**safe_batch)
+                    else:
+                        return fn(batch) if name != "forward" else fn(batch)
+                except TypeError:
+                    # Try positional call as last resort
+                    try:
+                        return fn(batch)
+                    except Exception:
+                        continue
+                except Exception:
+                    continue
+            return None  # couldn't infer
+
+        # 5) Iterate and write per-sample JSONL
+        num_samples = 0
+        bad = 0
+
+        def _sanitize(x, depth=0):
+            if depth > 6:
+                return repr(type(x).__name__)
+            if x is None or isinstance(x, (bool, int, float, str)):
+                return x
+            if isinstance(x, (list, tuple)):
+                return [_sanitize(v, depth + 1) for v in x]
+            if isinstance(x, dict):
+                return {str(k): _sanitize(v, depth + 1) for k, v in x.items()}
+            if isinstance(x, torch.Tensor):
+                try:
+                    return x.detach().cpu().tolist()
+                except Exception:
+                    return f"<tensor shape={tuple(x.shape)}>"
+            if hasattr(x, "tolist"):
+                try:
+                    return x.tolist()
+                except Exception:
+                    pass
+            # common attributes to expose
+            for key in ("text", "pred", "label", "output", "value"):
+                if hasattr(x, key):
+                    try:
+                        return _sanitize(getattr(x, key), depth + 1)
+                    except Exception:
+                        pass
+            return repr(x)
+
+        with io.open(per_sample_path, "w", encoding="utf-8") as f, torch.no_grad():
+            for i, batch in enumerate(loader):
+                # Move tensors to device (dict batches are common)
+                if isinstance(batch, dict):
+                    batch = {k: _to(v) for k, v in batch.items()}
+                else:
+                    batch = _to(batch)
+
+                out = _infer(model, batch)
+                rec = {
+                    "index": i,
+                    "pred": _sanitize(out),
+                }
+                # include lightweight view of inputs if available
+                if isinstance(batch, dict):
+                    for k in ("image", "images", "text", "conversations"):
+                        if k in batch:
+                            rec[f"inp_{k}"] = _sanitize(batch[k])
+
+                try:
+                    f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                    num_samples += 1
+                except Exception:
+                    bad += 1
+
+        # 6) Summary JSON
+        summary = {
+            "file": per_sample_path,
+            "num_samples": num_samples,
+            "bad": bad,
+            "agg_metrics": 0.0,  # placeholder; compute your metric here if you have labels
+        }
+        with io.open(summary_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(summary, ensure_ascii=False, indent=2))
+
+        return {"num_samples": num_samples, "agg_metrics": 0.0}
+
+    def after_evaluation(self, val_result, split_name, epoch):
+        # ensure the dict has keys so RunnerBase.log_stats writes val_* rows
+        if not isinstance(val_result, dict):
+            val_result = {}
+        val_result.setdefault("agg_metrics", 0.0)
+        val_result.setdefault("num_samples", 0)
+        return val_result
+

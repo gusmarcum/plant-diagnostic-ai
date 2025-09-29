@@ -1,0 +1,8 @@
+datasets:
+  llava_conversation:
+    data_type: images
+    build_info:
+      # Your JSON entries look like "image": "data/train/…"
+      # So image_path should be the repo root that contains that 'data/' folder
+      image_path: /data/kiriti/MiniGPT-4/plant_diagnostic
+      ann_path: /data/kiriti/MiniGPT-4/plant_diagnostic/datasets/strawberry_stage2.json

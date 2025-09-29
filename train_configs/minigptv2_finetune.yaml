@@ -1,75 +1,70 @@
 model:
   arch: minigpt_v2
   model_type: pretrain
-  max_txt_len: 128
+  max_txt_len: 160
   end_sym: "</s>"
   llama_model: "/data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"
-  ckpt: "/data/kiriti/MiniGPT-4/checkpoints/checkpoint_stage2.pth"
-  use_grad_checkpoint: True
-  chat_template: True
-  lora_r: 64
-  lora_alpha: 16
+  ckpt: ""
+  use_grad_checkpoint: true
+  low_resource: true
+  chat_template: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
 
 datasets:
-  coco_vqa:
-    data_type: vqa
+  llava_conversation:
+    data_type: images
     build_info:
       annotations:
         train:
-          storage: "/data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_train_fixed.json"
+          storage: "/data/kiriti/MiniGPT-4/plant_diagnostic/datasets/strawberry_stage2.json"
         val:
-          storage: "/data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_val_fixed.json"
+          storage: "/data/kiriti/MiniGPT-4/plant_diagnostic/datasets/holdout_val_list.json"
       images:
-        train: "/data/kiriti/MiniGPT-4/dataset/coco/images/train2014"
-        val: "/data/kiriti/MiniGPT-4/dataset/coco/images/val2014"
+        train: "/data/kiriti/MiniGPT-4/plant_diagnostic/data/train"
+        val:   "/data/kiriti/MiniGPT-4/plant_diagnostic/data"
     vis_processor:
-      train:
-        name: "blip2_image_train"
-        image_size: 224
-      eval:
-        name: "blip2_image_eval"
-        image_size: 224
+      train: { name: "blip2_image_train", image_size: 448 }
+      eval:  { name: "blip2_image_eval",  image_size: 448 }
     text_processor:
-      train:
-        name: "blip_caption"
-      eval:
-        name: "blip_caption"
-    batch_size: 2  # Physical batch size per GPU
+      train: { name: "blip_caption" }
+      eval:  { name: "blip_caption" }
+    batch_size: 2
+
+
 
 run:
   task: image_text_pretrain
-  # Gradient accumulation settings
-  accumulation_steps: 4  # Effective batch size = batch_size * accumulation_steps
-  max_grad_norm: 1.0    # Maximum gradient norm for clipping
+  output_dir: "/data/kiriti/MiniGPT-4/output/minigptv2_finetune"
 
-  # Learning rate settings
   lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 1e-5
-  min_lr: 1e-6
+  init_lr: 3e-5
+  min_lr: 1e-5
   warmup_lr: 1e-6
-  warmup_steps: 1000
+  warmup_steps_ratio: 0.05
 
-  # Training settings
   weight_decay: 0.05
   max_epoch: 10
-  num_workers: 2
-  iters_per_epoch: 1000
+  num_workers: 4
   seed: 42
 
-  # Hardware and distribution settings
-  batch_size_train: 6
-  device: "cuda"
-  world_size: 1
+  # Per-GPU batch; 2 GPUs × 2 batch × 8 accum = effective 32
+  batch_size_train: 2
+  accumulation_steps: 8
+  amp: true
+  max_grad_norm: 1.0
+
+  # Dist settings — keep simple; torchrun sets ranks/world size
+  distributed: true
   dist_url: "env://"
-  distributed: True
-  amp: False
+  device: "cuda"
 
-  # Output and logging
-  output_dir: "/data/kiriti/MiniGPT-4/output/minigptv2_finetune"
-  wandb_log: True
-  job_name: "minigptv2_finetune_vqa"
-
-  # Checkpoint settings
+  # Logging / ckpt
+  wandb_log: true
+  job_name: "minigptv2_finetune_strawberry"
   resume_ckpt_path: null
-  evaluate: False
+  evaluate: false
   train_splits: ["train"]
+  val_splits: ["val"]
+

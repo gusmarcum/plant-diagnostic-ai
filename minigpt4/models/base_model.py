@@ -1,3 +1,5 @@
+import os
+local_rank = int(os.environ.get("LOCAL_RANK","0"))
 """
  Copyright (c) 2022, salesforce.com, inc.
  All rights reserved.
@@ -13,12 +15,14 @@ from omegaconf import OmegaConf
 import numpy as np
 import torch
 import torch.nn as nn
-from transformers import LlamaTokenizer
-from peft import (
-    LoraConfig,
-    get_peft_model,
-    prepare_model_for_int8_training,
-)
+from transformers import LlamaTokenizer, BitsAndBytesConfig
+from peft import get_peft_model, LoraConfig, TaskType, PeftModel
+try:
+    # peft <= 0.4 used this name
+    from peft import prepare_model_for_int8_training
+except ImportError:
+    # peft >= 0.5 renamed it
+    from peft import prepare_model_for_kbit_training as prepare_model_for_int8_training
 
 from minigpt4.common.dist_utils import download_cached_file
 from minigpt4.common.utils import get_abs_path, is_url
@@ -180,18 +184,35 @@ class BaseModel(nn.Module):
         logging.info('VIT Loading Complete')
         return visual_encoder, ln_vision
 
-    def init_llm(cls, llama_model_path, low_resource=False, low_res_device=0, lora_r=0,
-                 lora_target_modules=["q_proj","v_proj"], **lora_kargs):
-        logging.info('Loading LLAMA')
+    def init_llm(
+        self,
+        llama_model_path,
+        low_resource: bool = False,
+        low_res_device: int = 0,
+        lora_r: int = 0,
+        lora_target_modules=("q_proj", "v_proj"),
+        **lora_kargs,
+    ):
+        logging.info("Loading LLAMA")
         llama_tokenizer = LlamaTokenizer.from_pretrained(llama_model_path, use_fast=False)
         llama_tokenizer.pad_token = "$$"
+
+        quant_config = None
+        if low_resource:
+            # prefer the modern quantization path
+            try:
+                quant_config = BitsAndBytesConfig(load_in_8bit=True)
+            except Exception as e:
+                logging.warning(
+                    "Requested 8-bit but BitsAndBytesConfig unavailable; falling back to fp16 (%s)", e
+                )
+                low_resource = False
 
         if low_resource:
             llama_model = LlamaForCausalLM.from_pretrained(
                 llama_model_path,
                 torch_dtype=torch.float16,
-                load_in_8bit=True,
-                device_map={'': low_res_device}
+                quantization_config=quant_config,
             )
         else:
             llama_model = LlamaForCausalLM.from_pretrained(
@@ -199,24 +220,36 @@ class BaseModel(nn.Module):
                 torch_dtype=torch.float16,
             )
 
-        if lora_r > 0:
-            llama_model = prepare_model_for_int8_training(llama_model)
+        # Attach LoRA if requested
+        if lora_r and lora_r > 0:
+            # On k-bit models this is helpful; safe to try.
+            try:
+                llama_model = prepare_model_for_int8_training(llama_model)
+            except Exception:
+                pass
+
             loraconfig = LoraConfig(
-                r=lora_r,
+                r=int(lora_r),
+                lora_alpha=int(lora_kargs.get("lora_alpha", 16)),
+                lora_dropout=float(lora_kargs.get("lora_dropout", 0.1)),
                 bias="none",
-                task_type="CAUSAL_LM",
-                target_modules=lora_target_modules,
-                **lora_kargs
+                target_modules=list(lora_target_modules),
+                task_type=TaskType.CAUSAL_LM,
             )
             llama_model = get_peft_model(llama_model, loraconfig)
 
-            llama_model.print_trainable_parameters()
-
+            try:
+                llama_model.print_trainable_parameters()
+            except Exception:
+                pass
         else:
-            for name, param in llama_model.named_parameters():
-                param.requires_grad = False
-        logging.info('Loading LLAMA Done')
+            # No LoRA → freeze all base LLaMA params here.
+            for _, p in llama_model.named_parameters():
+                p.requires_grad = False
+
+        logging.info("Loading LLAMA Done")
         return llama_model, llama_tokenizer
+
 
 
     def load_from_pretrained(self, url_or_filename):
@@ -245,15 +278,19 @@ def disabled_train(self, mode=True):
     does not change anymore."""
     return self
 
-
 class LayerNorm(nn.LayerNorm):
-    """Subclass torch's LayerNorm to handle fp16."""
-
+    """Subclass torch's LayerNorm to handle fp16 safely."""
     def forward(self, x: torch.Tensor):
-        orig_type = x.dtype
-        ret = super().forward(x.type(torch.float32))
-        return ret.type(orig_type)
-
+        orig_dtype = x.dtype
+        # do LN in fp32 (on the same device), using fp32 weight/bias too
+        out = torch.nn.functional.layer_norm(
+            x.to(dtype=torch.float32),
+            self.normalized_shape,
+            self.weight.to(dtype=torch.float32) if self.weight is not None else None,
+            self.bias.to(dtype=torch.float32) if self.bias is not None else None,
+            self.eps,
+        )
+        return out.to(dtype=orig_dtype)
 
 
 
