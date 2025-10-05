@@ -230,7 +230,7 @@ Plant Diagnostic System/
 ## 🧩 Technical Details
 
 ### **Model Architecture**
-- **ResNet-50**: ImageNet pre-trained, fine-tuned on 7-class strawberry dataset
+- **ResNet-50**: ImageNet pre-trained, fine-tuned on dataset
 - **MiniGPT-v2**: Vision-language model with LLaMA-2-7B backbone
 - **LoRA Fine-tuning**: Efficient adaptation with rank-16 LoRA adapters
 
@@ -252,10 +252,6 @@ Plant Diagnostic System/
 
 - **Multi-Crop Support**: Expand beyond strawberries to other crops
 - **Advanced Augmentation**: More sophisticated data augmentation strategies
-- **Real-time Processing**: Optimize for mobile/edge deployment
-- **Confidence Calibration**: Improve uncertainty quantification
-- **Export Features**: JSON/CSV export for dataset analysis
-- **Docker Deployment**: Containerized deployment option
 
 ---
 
