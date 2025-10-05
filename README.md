@@ -195,6 +195,10 @@ If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the 
 
 ## 📁 Project Structure
 
+<img width="3840" height="804" alt="Untitled diagram _ Mermaid Chart-2025-10-04-233422" src="https://github.com/user-attachments/assets/b6f433ad-d25a-4b06-b0c5-e00addd43984" />
+<img width="3840" height="1730" alt="Untitled diagram _ Mermaid Chart-2025-10-04-233702" src="https://github.com/user-attachments/assets/7bf297ba-d818-48be-a803-d94d6994c62c" />
+<img width="3840" height="513" alt="Untitled diagram _ Mermaid Chart-2025-10-04-233939" src="https://github.com/user-attachments/assets/fc1dfc01-c445-4c3f-9398-709c4845fcfc" />
+
 ```
 Plant Diagnostic System/
 ├── demo_v5.py                           # Main Gradio web interface
