@@ -1,5 +1,5 @@
 #William Starks - Plant Diagnostic MiniGPT, derived from demo_v4.py and modified into a resnet50-wired strawberry pathologist. WIP
-#Added CSS to the gradio app for user satisfaction
+#Added CSS to the gradio app for user interface improvements
 import argparse
 import os
 import re
@@ -7,7 +7,12 @@ import numpy as np
 from PIL import Image
 import torch
 import gradio as gr
-from serpapi import GoogleSearch
+try:
+    from serpapi import GoogleSearch
+    SERPAPI_AVAILABLE = True
+except ImportError:
+    SERPAPI_AVAILABLE = False
+    print("Warning: serpapi not available, web search features disabled")
 import torch.backends.cudnn as cudnn
 import networkx as nx
 import pandas as pd
@@ -56,7 +61,7 @@ _RESNET_MODEL = None
 def _get_resnet():
     global _RESNET_MODEL
     if _RESNET_MODEL is None:
-        _RESNET_MODEL = load_resnet("plant_diagnostic/models/resnet_straw5.pth")
+        _RESNET_MODEL = load_resnet("plant_diagnostic/models/resnet_straw_final.pth")
     return _RESNET_MODEL
 
 args = parse_args()
@@ -65,28 +70,39 @@ if args.resnet_anchor:
 
 # --- Fixed-label helpers ---
 _CLASS_THRESH = {
-    "healthy":      0.67,
-    "overwatered":  0.74,
-    "root_rot":     0.76,
-    "drought":      0.77,
-    "frost":        0.79,
+    "healthy":      0.40, 
+    "overwatered":  0.60,
+    "root_rot":     0.65,
+    "drought":      0.70,
+    "frost":        0.75,
+    "gray_mold":    0.60,  
+    "white_mold":   0.60,  
 }
 
 _CANON_LABEL_MAP = {
     "healthy": "healthy",
-    "overwatered": "overwatering",
+    "overwatered": "overwatering", 
     "root_rot": "root rot",
     "drought": "drought",
     "frost": "frost injury",
+    "gray_mold": "gray mold",  
+    "white_mold": "white mold",  
 }
 
 def _accept_label(pred) -> str:
     if not pred:
+        print(f"[ResNet] No prediction returned")
         return "unknown"
     lbl = str(pred.get("label", "")).lower().strip()
     p1  = float(pred.get("p1", 0.0))
-    if lbl in _CLASS_THRESH and p1 >= _CLASS_THRESH[lbl]:
+    print(f"[ResNet] Label: {lbl}, Confidence: {p1:.3f} (always accepting top prediction)")
+    
+    # Always accept the top prediction - ResNet is accurate
+    if lbl in _CANON_LABEL_MAP:
         return _CANON_LABEL_MAP[lbl]
+    
+    # Fallback for unknown labels
+    print(f"[ResNet] Unknown label: {lbl}")
     return "unknown"
 
 def _postprocess_caption(text: str) -> str:
@@ -95,25 +111,15 @@ def _postprocess_caption(text: str) -> str:
     t = text.strip()
     t = t.replace(""", "").replace(""", "").replace("'", "").replace('"', "")
     t = re.sub(r'</?[^>\s]{1,32}>?', '', t)
-    t = t.replace('\u200b', '').replace('<', '').replace('>', '').replace('\\n', ' ')
-    parts = re.split(r'(?<=[.!?])\s+', t)
-    cleaned, seen = [], set()
-    for s in parts:
-        s = s.strip()
-        if not s:
-            continue
-        if s.lower().startswith("in conclusion"):
-            s = s.split(":", 1)[-1].strip() or s
-        key = re.sub(r"\s+", " ", s.lower())
-        if key in seen:
-            continue
-        seen.add(key)
-        cleaned.append(s)
-    text = " ".join(cleaned)
-    words = text.split()
-    if len(words) > 140:
-        text = " ".join(words[:140])
-    return text
+    t = t.replace('\u200b', '').replace('<', '').replace('>', '').replace('\\n', '\n')
+    
+    # Fix formatting issues
+    t = re.sub(r'\*\s*', '- ', t)  # Convert asterisks to dashes for bullet points
+    t = re.sub(r'\n\s*\n', '\n\n', t)  # Clean up multiple newlines
+    t = re.sub(r'([.!?])\s*([A-Z])', r'\1\n\n\2', t)  # Add line breaks after sentences
+    
+    # Don't truncate - let the full response through
+    return t
 
 # Load configuration
 cfg = Config(args)
@@ -175,7 +181,7 @@ _patch_drop_cachepos_all(model)
 
 # Initialize visual processor
 try:
-    vis_processor_cfg = cfg.preprocess_cfg.vis_processor.train
+    vis_processor_cfg = getattr(cfg.preprocess_cfg.vis_processor, "eval", None) or cfg.preprocess_cfg.vis_processor.train
     vis_processor = registry.get_processor_class(vis_processor_cfg.name).from_config(vis_processor_cfg)
 except Exception:
     vis_processor = registry.get_processor_class('blip2_image_eval').from_config({'image_size': 448})
@@ -265,7 +271,7 @@ def create_knowledge_graph(
     relationships_path='kg_relationships_faostat.csv',
     max_edges=2000
 ):
-    """Create the main knowledge graph visualization with dark theme."""
+    """Create the main knowledge graph visualization"""
     try:
         base = Path(__file__).resolve().parent
         nodes_fp = Path(nodes_path)
@@ -397,7 +403,7 @@ def create_knowledge_graph(
         return _empty_fig(f"Error: {e}")
 
 def draw_crop_from_csv(c_id):
-    """Draw the neighborhood graph for a specific crop ID with dark theme."""
+    """Draw the neighborhood graph for a specific crop ID"""
     try:
         nodes_df, rels_df = _load_csvs()
         
@@ -508,7 +514,7 @@ def draw_crop_from_csv(c_id):
         return _empty_fig(f"Error: {e}")
 
 def process_chat_with_image(user_message, chatbot, chat_state, gr_img, img_list, temperature, is_enhanced=False):
-    """Process chat with image analysis (minimal gating; two fixed prompts)."""
+    """Process chat with image analysis"""
     try:
         if gr_img is None:
             return (chatbot + [[user_message, "⚠️ Please upload an image first."]], chat_state, img_list)
@@ -524,15 +530,44 @@ def process_chat_with_image(user_message, chatbot, chat_state, gr_img, img_list,
         gr_img.save(img_path)
         pred = None
         try:
-            pred = diagnose_or_none(_get_resnet(), img_path, img_size=256)
+            # Debug: check raw probabilities before thresholding
+            model = _get_resnet()
+            with Image.open(img_path) as im:
+                img = im.convert("RGB")
+            
+            from resnet_classifier import _tfm, _DEVICE, _CLASSES
+            import torch.nn.functional as F
+            
+            x = _tfm(256)(img).unsqueeze(0).to(_DEVICE)
+            
+            # 2-view TTA
+            logits1 = model(x)
+            logits2 = model(torch.flip(x, dims=[3]))
+            logits = (logits1 + logits2) / 2
+            
+            probs = F.softmax(logits / 0.78, dim=1).squeeze(0)
+            pvals, idxs = torch.sort(probs, descending=True)
+            
+            print(f"[ResNet] Debug - Top 3 raw probabilities:")
+            for j in range(min(3, len(_CLASSES))):
+                class_name = _CLASSES[idxs[j]]
+                prob = float(pvals[j])
+                print(f"  {j+1}. {class_name}: {prob:.3f}")
+            
+            pred = diagnose_or_none(model, img_path, img_size=256)
+            print(f"[ResNet] Raw prediction: {pred}")
         except Exception as e:
             print(f"[resnet] warn: {e}")
+            import traceback
+            traceback.print_exc()
 
         # Accept/canonize label once; no extra thresholds here
         final_label = "unknown"
         try:
             final_label = _accept_label(pred)  # returns e.g., {"healthy","frost injury","root rot","overwatering","drought","unknown"}
-        except Exception:
+            print(f"[ResNet] Final label: {final_label}")
+        except Exception as e:
+            print(f"[ResNet] Error in _accept_label: {e}")
             pass
 
         # Confidence (optional badge)
@@ -545,43 +580,42 @@ def process_chat_with_image(user_message, chatbot, chat_state, gr_img, img_list,
         # Two fixed system prompts
         # ---------------------------
         # NOTE: Model was trained on <image> only; keep prompts simple and deterministic.
-        if str(final_label).lower().strip() == "healthy":
-            chat_state.system = (
-                "<<SYS>>You are a plant diagnostician. Look only at the photo.\n"
-                "Output exactly THREE sentences, in this exact format:\n"
-                "1) Diagnosis: Healthy.\n"
-                "2) Visible cues: 2–3 positive cues that are clearly visible (e.g., uniform green foliage, intact margins, firm fruit; avoid technical jargon).\n"
-                "3) Step: one simple maintenance action (light watering cadence, debris removal, light mulch). No lists.\n"
-                "Do not invent diseases or tools. Do not add extra sentences or disclaimers.\n"
-                "<</SYS>>"
-            )
-        else:
-            # Non-healthy OR unknown → still say one diagnosis line and proceed
-            # (We pass the fixed diagnosis text directly to keep it single and consistent.)
-            chat_state.system = (
-                "<<SYS>>You are a plant diagnostician. Look only at the photo.\n"
-                "Output exactly THREE sentences, in this exact format:\n"
-                f"1) Diagnosis: {final_label.title()}.\n"
-                "2) Visible cues: 2–4 clearly visible cues tied to locations (color, margins, curl/wilt, spots/lesions, translucency, crown/soil appearance). No guessing.\n"
-                "3) Step: one immediate, practical action; include a numeric recovery window like '3–7 days' if applicable; otherwise say why not.\n"
-                "Do not add extra sentences, lists, sensors, or professional referrals.\n"
-                "<</SYS>>"
-            )
-
-        # Minimal user ask text — keep deterministic
-        ask_text = (
-            user_message.strip()
-            if user_message and user_message.strip()
-            else "Produce the three-sentence output now."
+        chat_state.system = (
+            "<<SYS>>You are a plant diagnostician. The diagnosis has already been determined: {final_label.title()}\n"
+            "Your ONLY task is to examine the image and explain WHY this diagnosis is correct.\n"
+            "You MUST use this exact diagnosis: {final_label.title()}\n"
+            "Do not make your own diagnosis. Do not disagree with this diagnosis.\n"
+            "Provide a detailed medical report in this EXACT format:\n"
+            "1) Diagnosis: {final_label.title()}\n"
+            "2) Visible cues: Describe specific visual observations from the image that support this diagnosis.\n"
+            "3) Recommendation: Provide specific, actionable steps to address this issue.\n"
+            "Use proper formatting:\n"
+            "- Use numbered lists (1), 2), 3))\n"
+            "- Use bullet points with dashes (-) not asterisks\n"
+            "- Write complete, well-formed sentences\n"
+            "- Be detailed and thorough\n"
+            "- Do not add greetings, disclaimers, or extra text\n"
+            "CRITICAL: You MUST complete your response fully. Do not cut off mid-sentence. Finish ALL recommendations completely.\n"
+            "Continue writing until you have provided a complete medical report with all necessary details.\n"
+            "Do not stop until you have finished all recommendations.\n"
+            "<</SYS>>"
         )
+
+        # Direct, focused prompt for better responses
+        if user_message and user_message.strip():
+            ask_text = user_message.strip()
+        else:
+            ask_text = f"Examine this image and explain why the diagnosis is {final_label.title()}."
         _ = chat.ask(ask_text, chat_state)
 
         ans = chat.answer(
             conv=chat_state,
             img_list=img_list,
-            temperature=0.05,
-            max_new_tokens=300,
-            max_length=900,
+            temperature=temperature,  # Use the slider value
+            max_new_tokens=2000,  # Much higher for complete medical reports
+            max_length=4000,  # Even longer to accommodate full responses
+            num_beams=1,  # Single beam for better completion
+            repetition_penalty=1.01,  # Very low penalty to avoid cutting off
         )
         body = (ans[0] if isinstance(ans, (list, tuple)) and len(ans) else str(ans)).strip()
 
@@ -717,8 +751,8 @@ with gr.Blocks(
                         gr.Markdown("### ⚙️ Analysis Settings")
                         temperature = gr.Slider(
                             minimum=0.01,
-                            maximum=0.3,
-                            value=0.05,
+                            maximum=0.5,
+                            value=0.2,  # Higher default for more creative responses
                             step=0.01,
                             label="🌡️ Temperature",
                             info="Lower = More focused | Higher = More creative"
@@ -937,12 +971,9 @@ with gr.Blocks(
     reload_graph.click(fn=create_knowledge_graph, inputs=None, outputs=graph_plot)
     show_btn.click(draw_crop_from_csv, inputs=[crop_id], outputs=[graph_plot])
 
-# Launch with custom settings
+# Launch
 if __name__ == "__main__":
+    import random
+    port = random.randint(30000, 39999)
     demo.queue(max_size=20)
-    demo.launch(
-        share=True,
-        server_name="0.0.0.0",
-        server_port=7860,
-        show_error=True
-    )
+    demo.launch(server_name="0.0.0.0", server_port=port, share=True)

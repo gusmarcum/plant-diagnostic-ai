@@ -1,6 +1,6 @@
-# 🍓 Strawberry Plant Diagnostic (MiniGPT‑v2 + ResNet)
+# 🌿 Plant Diagnostic System (MiniGPT‑v2 + ResNet)
 
-An image-based **strawberry plant diagnostician** that pairs a lightweight **ResNet** classifier (to pin the diagnosis) with **MiniGPT‑v2** (to explain visible cues and next steps). Ships with a dark, two‑pane **Gradio** UI and an optional interactive **FAOSTAT** knowledge graph.
+An advanced **plant diagnostic system** that combines a **ResNet-50** classifier for accurate disease identification with **MiniGPT‑v2** for detailed medical reporting. The system provides comprehensive strawberry plant health analysis with doctor-grade diagnostic reports, confidence scoring, and actionable treatment recommendations.
 
 > Research prototype. Not medical/agronomic advice.
 
@@ -8,121 +8,182 @@ An image-based **strawberry plant diagnostician** that pairs a lightweight **Res
 
 ## ✨ Features
 
-- **Dual engine**: ResNet classifier + MiniGPT‑v2 reasoning (LLM explains; it does **not** override a high‑confidence label)
-- **One‑Diagnosis guarantee**: post‑filter enforces **exactly one** `Diagnosis:` line (no duplicates or “Dx:” echoes)
-- **Confidence badge** on each result (🟢 ≥0.90, 🟡 ≥0.70, 🔴 else)
-- **Two chat panes**: Standard analysis and “Enhanced” (web context optional; can be disabled)
-- **Interactive FAOSTAT graph** (Plotly + NetworkX) with full‑graph and neighborhood views
-- **Dark, responsive UI**
+- **Dual AI Architecture**: ResNet-50 classifier + MiniGPT‑v2 vision-language model
+- **7-Class Disease Detection**: healthy, overwatering, root rot, drought, frost injury, gray mold, white mold
+- **Ground Truth Approach**: ResNet diagnosis is treated as absolute truth, MiniGPT explains the evidence
+- **Confidence Scoring**: Visual confidence indicators (🟢 ≥90%, 🟡 70-90%, 🔴 <70%)
+- **Doctor-Grade Reports**: Structured medical reports with diagnosis, visible cues, and recommendations
+- **Interactive Knowledge Graph**: FAOSTAT agricultural data visualization
+- **Modern Web Interface**: Dark theme with responsive Gradio UI
+- **Real-time Processing**: Optimized for fast inference on single GPU
 
 ---
 
 ## 🧰 Requirements
 
-- Python **3.9+**
-- **CUDA GPU** recommended (MiniGPT‑v2 + LLaMA‑2 7B)
-- Model weights (local paths set in your YAML/code):
-  - LLaMA‑2‑7B (chat) weights (e.g., `llama_weights/Llama-2-7b-chat-hf`)
-  - MiniGPT‑v2 checkpoint (e.g., `output/minigptv2_finetune/new/checkpoint_9.pth`)
-  - ResNet weights for the strawberry classifier (e.g., `plant_diagnostic/models/resnet_straw5.pth`)
-- (Optional) **SERPAPI** key for the Enhanced pane (diagnostics work without it)
+- Python **3.8+**
+- **CUDA GPU** (RTX 3090/4090 recommended for optimal performance)
+- **PyTorch** with CUDA support
+- Model weights (automatically loaded from configured paths):
+  - LLaMA‑2‑7B chat weights: `llama_weights/Llama-2-7b-chat-hf/`
+  - MiniGPT‑v2 checkpoint: `output/minigptv2_strawberry_diagnostic/*/checkpoint_best.pth`
+  - ResNet-50 classifier: `plant_diagnostic/models/resnet_straw_final.pth`
+- **8GB+ VRAM** for smooth operation
+- (Optional) **SERPAPI** key for enhanced web search features
 
 ---
 
 ## ⚙️ Setup
 
 ```bash
-git clone https://github.com/adainstarks/minigpt4plantdiagnostic.git
-cd MiniGPT-4
+# Clone the repository
+git clone https://github.com/your-username/plant-diagnostic-system.git
+cd plant-diagnostic-system
 
-# Pick the CUDA wheel matching your system:
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# Install PyTorch with CUDA support
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-# App/runtime deps
-pip install transformers==4.41.1 bitsandbytes gradio pillow numpy pandas plotly networkx python-dotenv
+# Install required dependencies
+pip install transformers==4.41.1 bitsandbytes gradio pillow numpy pandas plotly networkx python-dotenv timm
+
+# Optional: Install additional dependencies for enhanced features
+pip install serpapi  # For web search features
 ```
 
-(Optional) create `.env` if you plan to use the Enhanced pane:
+**Environment Setup:**
+```bash
+# Set CUDA memory allocation for better performance
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-```env
-SERP_API_KEY=your_serpapi_key_here
+# Optional: Set SERPAPI key for enhanced features
+export SERP_API_KEY=your_serpapi_key_here
 ```
-
-> If you don’t use Enhanced, you can skip the key.
 
 ---
 
-## 🔧 Configure
+## 🔧 Configuration
 
-Point the config to your local model paths in `configs/models/minigpt_v2.yaml`:
+The system uses YAML configuration files for easy setup. Key configuration files:
 
+- **`eval_configs/minigptv2_eval.yaml`** - Demo/inference configuration
+- **`train_configs/minigptv2_strawberry_diagnostic.yaml`** - Training configuration
+
+**Model Paths** (automatically configured):
+- MiniGPT-v2 checkpoint: `output/minigptv2_strawberry_diagnostic/*/checkpoint_best.pth`
+- LLaMA-2-7B weights: `llama_weights/Llama-2-7b-chat-hf/`
+- ResNet-50 classifier: `plant_diagnostic/models/resnet_straw_final.pth`
+
+**Key Configuration Parameters:**
 ```yaml
 model:
   arch: minigpt_v2
-  model_type: pretrain
-  max_txt_len: 256
-  ckpt: /MiniGPT-4/output/minigptv2_finetune/new/checkpoint_9.pth
-  llama_model: /MiniGPT-4/llama_weights/Llama-2-7b-chat-hf
-  use_lora: true
+  ckpt: /path/to/checkpoint_best.pth
   lora_r: 16
   lora_alpha: 32
-  lora_dropout: 0.05
-  tune_mm_mlp_adapter: true
-  freeze_llama: true
-
-preprocess:
-  vis_processor:
-    eval: { name: blip2_image_eval, image_size: 576 }
 
 run:
-  task: image_text_pretrain
-```
-
-Ensure your ResNet is loaded in code, e.g.:
-
-```python
-# resnet_classifier.py or where you call it
-load_resnet("plant_diagnostic/models/resnet_straw5.pth")
+  evaluate: true
+  val_splits: ["val"]
+  max_val_steps: 50
+  auto_val_split_ratio: 0.1
 ```
 
 ---
 
-## 🚀 Run
+## 🚀 Running the System
 
-This is the exact dev command used:
+### **Demo/Inference Mode**
+
+Launch the Plant Diagnostic System:
 
 ```bash
-python demo_v5.py --cfg-path configs/models/minigpt_v2.yaml --gpu-id 0
+CUDA_VISIBLE_DEVICES=0 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python demo_v5.py --cfg-path eval_configs/minigptv2_eval.yaml --resnet-anchor
 ```
 
-Preload the ResNet on launch (minor first‑image speedup):
+**Parameters:**
+- `--cfg-path`: Points to the evaluation configuration
+- `--resnet-anchor`: Preloads ResNet for faster first inference
+- `CUDA_VISIBLE_DEVICES=0`: Uses GPU 0 (adjust as needed)
+- `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`: Optimizes CUDA memory allocation
+
+The system will start a Gradio web interface. Open the provided URL in your browser.
+
+### **Training Mode**
+
+Train the MiniGPT-v2 model on strawberry diagnostic data:
 
 ```bash
-python demo_v5.py --cfg-path configs/models/minigpt_v2.yaml --gpu-id 0 --resnet-anchor
+CUDA_VISIBLE_DEVICES=0,1 MASTER_PORT=29607 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
+python -m torch.distributed.run --nproc_per_node=2 train.py \
+  --cfg-path train_configs/minigptv2_strawberry_diagnostic.yaml
 ```
 
-Gradio will print a local URL to open in your browser.
+**Training Features:**
+- **Distributed Training**: Multi-GPU support with `torch.distributed.run`
+- **Automatic Validation Split**: Creates 10% validation from training data
+- **Best Checkpoint Saving**: Saves `checkpoint_best.pth` based on validation loss
+- **Mixed Precision**: TF32 enabled for faster training on Ampere GPUs
 
 ---
 
-## 🖥️ Using the app
+## 🖥️ Using the Plant Diagnostic System
 
-1. **Upload** a close‑up strawberry photo (leaf/flower/fruit). 
-2. Keep **Temperature** near **0.05–0.10** for stable, grounded output. 
-3. Read the **Standard Analysis** panel:
-   - `Diagnosis: <Healthy / Unknown / Frost injury / Root rot / Overwatering / Drought>`
-   - `Visible cues: …` (2–4 image‑grounded cues tied to locations: leaf margins, fruit surface, crown)
-   - `Step: …` (one immediate, practical action)
+### **Image Analysis Workflow**
+
+1. **Upload Image**: Click the image upload area and select a clear photo of your strawberry plant
+2. **Adjust Settings**: Use the temperature slider (0.01-0.5) to control response creativity
+3. **Run Analysis**: Click "📤 Send" in the Standard Analysis panel or "🔎 Analyze" in Enhanced Analysis
+
+### **Understanding the Results**
+
+The system provides structured medical reports with:
+
+**🔍 Diagnosis Section:**
+- **7 Disease Classes**: healthy, overwatering, root rot, drought, frost injury, gray mold, white mold
+- **Confidence Indicators**: 🟢 High (≥90%), 🟡 Medium (70-90%), 🔴 Low (<70%)
+
+**📋 Medical Report Format:**
+```
+1) Diagnosis: [Disease Name]
+2) Visible cues: [Specific visual observations from the image]
+3) Recommendation: [Actionable treatment steps]
+```
+
+**🎯 Best Practices:**
+- Upload clear, well-lit images of affected plant areas
+- Include both close-ups and full plant views when possible
+- Use temperature 0.1-0.3 for balanced creativity and accuracy
+- Check the Knowledge Graph tab for related agricultural insights
 
 ---
 
-## 🧪 How it works (short)
+## 🧪 How the System Works
 
-1. **ResNet** classifies the uploaded image into `{healthy, drought, overwatering, root rot, frost injury}` with per‑class thresholds. 
-2. If confidence is high, that label is **fixed**; the LLM **only** describes visible cues + one actionable step (no label drift). 
-3. If confidence is low, the system uses a cautious prompt that avoids disease names and focuses on evidence. 
-4. A compact answer is produced; a **confidence badge** is shown when available. 
-5. Optional **Enhanced** pane can append brief web context (requires SERP key).
+### **Two-Stage AI Pipeline**
+
+1. **ResNet-50 Classification**:
+   - Pre-trained on ImageNet, fine-tuned on strawberry diseases
+   - Uses Test-Time Augmentation (TTA) for robust predictions
+   - Temperature scaling for calibrated confidence scores
+   - Outputs: `{healthy, overwatering, root rot, drought, frost injury, gray mold, white mold}`
+
+2. **MiniGPT-v2 Explanation**:
+   - Vision-language model trained on image-text pairs
+   - Receives ResNet diagnosis as "ground truth"
+   - Generates detailed medical reports explaining the diagnosis
+   - Structured output: diagnosis, visible cues, recommendations
+
+### **Processing Flow**
+
+```
+Image Upload → ResNet Classification → Label Mapping → MiniGPT Explanation → Medical Report
+```
+
+**Key Features:**
+- **Ground Truth Approach**: ResNet diagnosis is treated as absolute truth
+- **No Label Drift**: MiniGPT explains, doesn't override the diagnosis
+- **Confidence Scoring**: Visual indicators based on ResNet confidence
+- **Doctor-Grade Reports**: Structured, professional medical format
 
 ---
 
@@ -132,59 +193,97 @@ If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the 
 
 ---
 
-## 📁 Project layout (high level)
+## 📁 Project Structure
 
 ```
-minigpt4/             # core model + conversation stack
-configs/models/       # minigpt_v2.yaml (runtime config you use at launch)
-eval_configs/         # legacy/optional eval configs
-demo_v5.py            # main Gradio app (v5 UI, ResNet+LLM flow)
-resnet_classifier.py  # ResNet load + inference helpers
-plant_diagnostic/     # ResNet + data helpers
-  └─ models/resnet_straw5.pth
-kg_nodes_faostat.csv
-kg_relationships_faostat.csv
+Plant Diagnostic System/
+├── demo_v5.py                           # Main Gradio web interface
+├── resnet_classifier.py                 # ResNet-50 model and inference
+├── train.py                            # Training script
+├── eval_only.py                        # Non-interactive evaluation
+├── eval_holdout.py                     # Holdout evaluation script
+├── minigpt4/                           # Core MiniGPT-v2 framework
+│   ├── models/                         # Model architectures
+│   ├── tasks/                          # Training tasks
+│   ├── runners/                        # Training runners
+│   └── datasets/                       # Dataset builders
+├── eval_configs/                       # Inference configurations
+│   └── minigptv2_eval.yaml
+├── train_configs/                      # Training configurations
+│   └── minigptv2_strawberry_diagnostic.yaml
+├── plant_diagnostic/                   # ResNet training and data
+│   ├── models/
+│   │   └── resnet_straw_final.pth     # 7-class ResNet checkpoint
+│   ├── data/                          # Training images
+│   └── datasets/                      # Dataset annotations
+├── llama_weights/                      # LLaMA-2-7B weights
+│   └── Llama-2-7b-chat-hf/
+├── output/                            # Training outputs
+│   └── minigptv2_strawberry_diagnostic/
+├── kg_nodes_faostat.csv               # Knowledge graph nodes
+├── kg_relationships_faostat.csv       # Knowledge graph edges
+└── dark_theme.css                     # UI styling
 ```
 
 ---
 
-## 🧩 Dev notes
+## 🧩 Technical Details
 
-- Current model state has minor hallucination issues when describing visual symptoms, an increase in training data would help.
-- `blip2_image_eval` at **576 px** is a good trade‑off for small lesions vs. throughput. 
-- Output cleaning removes control tokens, duplicate sentences, and normalizes whitespace.
+### **Model Architecture**
+- **ResNet-50**: ImageNet pre-trained, fine-tuned on 7-class strawberry dataset
+- **MiniGPT-v2**: Vision-language model with LLaMA-2-7B backbone
+- **LoRA Fine-tuning**: Efficient adaptation with rank-16 LoRA adapters
+
+### **Performance Optimizations**
+- **TF32 Precision**: Enabled for faster training on Ampere GPUs
+- **Mixed Precision Training**: Automatic mixed precision with gradient scaling
+- **CUDA Memory Management**: Expandable segments for better memory utilization
+- **Test-Time Augmentation**: Horizontal flip for robust ResNet predictions
+
+### **Training Features**
+- **Automatic Validation Split**: 10% holdout from training data
+- **Best Checkpoint Saving**: Saves model with lowest validation loss
+- **Gradient Clipping**: Prevents exploding gradients
+- **Learning Rate Scheduling**: Cosine annealing with warmup
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ Future Enhancements
 
-- Multi‑crop / center‑crop inference for tiny lesions 
-- Optional per‑part cues (leaf/fruit/flower) 
-- Export to JSONL/CSV for dataset triage 
-- Docker packaging for deployment
+- **Multi-Crop Support**: Expand beyond strawberries to other crops
+- **Advanced Augmentation**: More sophisticated data augmentation strategies
+- **Real-time Processing**: Optimize for mobile/edge deployment
+- **Confidence Calibration**: Improve uncertainty quantification
+- **Export Features**: JSON/CSV export for dataset analysis
+- **Docker Deployment**: Containerized deployment option
 
 ---
 
-## 📜 License & credits
+## 📜 License & Credits
 
-- Builds on MiniGPT‑v2 / MiniGPT‑4 and LLaMA‑2. Respect upstream licenses and any dataset T&Cs you use. 
-- Add your own **LICENSE** file if you plan to distribute your modifications.
+This project builds upon:
+- **MiniGPT-v2**: Vision-language model framework
+- **LLaMA-2**: Language model backbone
+- **ResNet**: Image classification architecture
+- **FAOSTAT**: Agricultural knowledge graph data
+
+Please respect upstream licenses and dataset terms of use.
 
 ---
 
 ## 📚 Citation
 
 ```bibtex
-@software{strawberry_minigpt_demo,
-  title  = {Strawberry Plant Diagnostic Demo (MiniGPT-v2 + ResNet)},
-  author = {Starks, William and collaborators},
+@software{plant_diagnostic_system,
+  title  = {Plant Diagnostic System: AI-Powered Strawberry Disease Detection},
+  author = {William Starks, Kiriti Vundavilli},
   year   = {2025},
-  note   = {GitHub repository}
+  note   = {GitHub repository: Advanced plant health analysis with ResNet + MiniGPT-v2}
 }
 ```
 
 ---
 
-## 🧪 TL;DR
+## 🧪 Summary
 
-A guarded MiniGPT‑v2 + ResNet pipeline that returns a short, grounded plant diagnosis with one clean `Diagnosis:` line, visible cues, and a practical next step—without naming diseases at low confidence.
+The Plant Diagnostic System combines ResNet-50 classification with MiniGPT-v2 explanation to provide accurate, doctor-grade strawberry plant health analysis. The system treats ResNet predictions as ground truth and generates structured medical reports with confidence scoring and actionable recommendations.

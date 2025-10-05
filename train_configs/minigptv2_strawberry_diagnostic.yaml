@@ -1,0 +1,77 @@
+model:
+  arch: minigpt_v2
+  model_type: pretrain
+  max_txt_len: 160
+  end_sym: "</s>"
+  llama_model: "/data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"
+  ckpt: "/data/kiriti/MiniGPT-4/checkpoints/checkpoint_stage2.pth"
+  use_grad_checkpoint: true
+  low_resource: true
+  chat_template: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+datasets:
+  strawberry_diagnostic:
+    data_type: images
+    build_info:
+      annotations:
+        train:
+          storage: "/data/kiriti/MiniGPT-4/plant_diagnostic/datasets/stage2_train_7class_fixed.json"
+      images:
+        train: "/data/kiriti/MiniGPT-4/plant_diagnostic/data/train_aug"
+    vis_processor:
+      train:
+        name: "blip2_image_train"
+        image_size: 448
+      eval:
+        name: "blip2_image_eval"
+        image_size: 448
+    text_processor:
+      train:
+        name: "blip_caption"
+      eval:
+        name: "blip_caption"
+    batch_size: 2
+
+run:
+  task: image_text_pretrain
+  output_dir: "/data/kiriti/MiniGPT-4/output/minigptv2_strawberry_diagnostic"
+  iters_per_epoch: 1500
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 3e-5
+  min_lr: 1e-5
+  warmup_lr: 1e-6
+  warmup_steps_ratio: 0.05
+
+  weight_decay: 0.05
+  max_epoch: 10
+  num_workers: 4
+  seed: 42
+
+  # Per-GPU batch; 2 GPUs × 2 batch × 8 accum = effective 32
+  batch_size_train: 2
+  accumulation_steps: 8
+  amp: true
+  max_grad_norm: 1.0
+
+  # Dist settings — keep simple; torchrun sets ranks/world size
+  distributed: true
+  dist_url: "env://"
+  device: "cuda"
+
+  # Logging / ckpt
+  wandb_log: false
+  job_name: "minigptv2_strawberry_diagnostic"
+  resume_ckpt_path: null
+  evaluate: true
+  train_splits: ["train"]
+  val_splits: ["val"]
+  max_val_steps: 50  # Limit validation to avoid long eval times
+  auto_val_split_ratio: 0.1  # auto-create 10% val from train when no val provided
+
+
+  # Auto-create a 10% val split when none exists
+  auto_val_split_ratio: 0.1
+

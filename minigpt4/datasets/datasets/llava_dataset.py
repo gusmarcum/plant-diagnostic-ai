@@ -1,5 +1,6 @@
 import os
 import json
+from pathlib import Path
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -35,6 +36,47 @@ def _safe_image_id(info, image_relpath: str) -> str:
     base = os.path.basename(image_relpath)
     return os.path.splitext(base)[0]
 
+def _resolve_image_path(vis_root: str, p: str) -> str:
+    """
+    Robustly resolve image path:
+    - If p is absolute and exists -> use it
+    - Try vis_root/p
+    - Try vis_root/'data'/p (common repo layout)
+    - Return normalized best-guess (caller will check exists)
+    """
+    if p:
+        p = str(p)
+    if p and os.path.isabs(p) and os.path.exists(p):
+        return p
+    candidates = []
+    if vis_root:
+        candidates.append(os.path.join(vis_root, p))
+        candidates.append(os.path.join(vis_root, "data", p))
+    candidates.append(p)
+    for c in candidates:
+        if c and os.path.exists(c):
+            return c
+    return os.path.normpath(os.path.join(vis_root or "", p or ""))
+
+def _normalize_and_filter_samples(records, vis_root: str, ann_path: str):
+    keep = []
+    dropped = 0
+    warned = False
+    for rec in records:
+        raw = (rec.get("image") or rec.get("image_path") or rec.get("filepath"))
+        rp = _resolve_image_path(vis_root, raw)
+        if rp and os.path.exists(rp):
+            rec["image"] = rp
+            keep.append(rec)
+        else:
+            dropped += 1
+            if not warned:
+                print(f"[dataset] missing file example (suppressed next): raw={raw}, vis_root={vis_root}")
+                warned = True
+    if dropped:
+        print(f"[dataset] filtered missing: kept={len(keep)} dropped={dropped} ann={ann_path}")
+    return keep
+
 # ---- Datasets ----------------------------------------------------------------
 
 class LlavaDetailDataset(Dataset):
@@ -49,6 +91,7 @@ class LlavaDetailDataset(Dataset):
 
         with open(ann_path, "r") as f:
             self.ann = json.load(f)
+        self.ann = _normalize_and_filter_samples(self.ann, self.vis_root, ann_path)
 
     def __len__(self):
         return len(self.ann)
@@ -57,7 +100,7 @@ class LlavaDetailDataset(Dataset):
         info = self.ann[index]
 
         image_rel = _pick_image_file(info)
-        image_path = os.path.join(self.vis_root, image_rel)
+        image_path = info.get("image") or _resolve_image_path(self.vis_root, image_rel)
         image = Image.open(image_path).convert("RGB")
         image = self.vis_processor(image)
 
@@ -88,6 +131,7 @@ class LlavaReasonDataset(Dataset):
 
         with open(ann_path, "r") as f:
             self.ann = json.load(f)
+        self.ann = _normalize_and_filter_samples(self.ann, self.vis_root, ann_path)
 
     def __len__(self):
         return len(self.ann)
@@ -96,7 +140,7 @@ class LlavaReasonDataset(Dataset):
         info = self.ann[index]
 
         image_rel = _pick_image_file(info)
-        image_path = os.path.join(self.vis_root, image_rel)
+        image_path = info.get("image") or _resolve_image_path(self.vis_root, image_rel)
         image = Image.open(image_path).convert("RGB")
         image = self.vis_processor(image)
 
@@ -127,6 +171,7 @@ class LlavaConversationDataset(Dataset):
 
         with open(ann_path, "r") as f:
             self.ann = json.load(f)
+        self.ann = _normalize_and_filter_samples(self.ann, self.vis_root, ann_path)
 
         self.connect_sym = "!@#"
 
@@ -137,7 +182,7 @@ class LlavaConversationDataset(Dataset):
         info = self.ann[index]
 
         image_rel = _pick_image_file(info)
-        image_path = os.path.join(self.vis_root, image_rel)
+        image_path = info.get("image") or _resolve_image_path(self.vis_root, image_rel)
         image = Image.open(image_path).convert("RGB")
         image = self.vis_processor(image)
 

@@ -32,6 +32,22 @@ import transformers
 LOCAL_RANK = int(os.environ.get("LOCAL_RANK", "0"))
 _target = f"cuda:{LOCAL_RANK}"
 
+# Ampere loves TF32; safe and faster for matmuls
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+torch.backends.cudnn.benchmark = True  # Enable autotuning for consistent shapes
+torch.backends.cudnn.deterministic = False  # Required for benchmark=True
+
+try:
+    torch.set_float32_matmul_precision("high")  # PyTorch 2.x
+    tf32_status = "ENABLED"
+except Exception:
+    tf32_status = "FALLBACK"
+
+# Print optimization status
+print(f"[env] cudnn.benchmark={torch.backends.cudnn.benchmark}, deterministic={torch.backends.cudnn.deterministic}, tf32_matmul={tf32_status}")
+
+
 def _pin_device_map(kwargs):
     dm = kwargs.get("device_map", None)
     if dm is None or (isinstance(dm, str) and str(dm).lower() == "auto"):
@@ -74,8 +90,7 @@ def setup_seeds(config):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    cudnn.benchmark = False
-    cudnn.deterministic = True
+    # cudnn.benchmark and deterministic already set above, don't override
 
 
 def get_runner_class(cfg):

@@ -43,7 +43,7 @@ run:
   min_lr: 1e-5
   warmup_lr: 1e-6
   warmup_steps_ratio: 0.05
-
+  iters_per_epoch: 1500
   weight_decay: 0.05
   max_epoch: 10
   num_workers: 4

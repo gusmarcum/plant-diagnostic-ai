@@ -7,6 +7,7 @@
 """
 
 import datetime
+import random
 import json
 import logging
 import os
@@ -17,7 +18,7 @@ import torch
 import torch.distributed as dist
 import webdataset as wds
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.utils.data import DataLoader, DistributedSampler
+from torch.utils.data import DataLoader, DistributedSampler, Subset
 
 from minigpt4.common.dist_utils import (
     download_cached_file,
@@ -67,25 +68,40 @@ class RunnerBase:
         self._lr_sched = None
         self.start_epoch = 0
 
+        # Best validation tracking
+        self._best_val_loss = float('inf')
+
         # Output dirs (register in registry and on disk)
         self.setup_output_dir()
 
-        # Resolve validation splits early
+        # Resolve validation splits early — STRICTLY honor config
         try:
             ds_keys = set(datasets.keys()) if isinstance(datasets, dict) else set()
             run_block = getattr(cfg, "run_cfg", None)
-            cfg_vs = list(getattr(run_block, "val_splits", []) or [])
-            resolved = [s for s in cfg_vs if s in ds_keys]
-            if not resolved and "val" in ds_keys:
-                resolved = ["val"]
+            eval_enabled = bool(getattr(run_block, "evaluate", False))
+
+            # None  => unspecified (we may default to ["val"] if eval is enabled and dataset has "val")
+            # []    => explicitly no validation (never evaluate)
+            cfg_vs_raw = getattr(run_block, "val_splits", None)
+
+            if not eval_enabled:
+                resolved = []
+            elif isinstance(cfg_vs_raw, list):
+                # User explicitly set list (possibly empty) — filter to existing keys
+                resolved = [s for s in cfg_vs_raw if s in ds_keys]
+            else:
+                # Unspecified: only default to ["val"] if present AND eval is enabled
+                resolved = ["val"] if "val" in ds_keys else []
+
             self._valid_splits = resolved
             logging.info(
-                "[runner] Resolved valid_splits=%s from ds_keys=%s and cfg=%s",
-                self._valid_splits, sorted(ds_keys), cfg_vs
+                "[runner] Resolved valid_splits=%s (evaluate=%s, cfg.val_splits=%s, ds_keys=%s)",
+                self._valid_splits, eval_enabled, cfg_vs_raw, sorted(ds_keys)
             )
         except Exception as e:
             logging.warning("[runner] Failed to resolve valid_splits early: %s", e)
             self._valid_splits = []
+
 
     # --------------------------
     # Core properties / helpers
@@ -215,19 +231,37 @@ class RunnerBase:
 
     @property
     def valid_splits(self):
+        """
+        Return the list of validation splits, strictly honoring:
+          - run_cfg.evaluate (must be True)
+          - run_cfg.val_splits:
+              * list => filtered against available dataset keys
+              * []   => explicitly none
+              * None => if "val" exists, default to ["val"]; else []
+        """
         try:
-            vs = getattr(self, "_valid_splits", None)
-            if vs:
-                return vs
+            # If we already computed it in __init__, use the cached value
+            if hasattr(self, "_valid_splits"):
+                return list(self._valid_splits)
+
             ds = getattr(self, "datasets", None)
             ds_keys = set(ds.keys()) if isinstance(ds, dict) else set()
-            cfg_vs = list(getattr(self.config.run_cfg, "val_splits", []) or [])
-            resolved = [s for s in cfg_vs if s in ds_keys]
-            if not resolved and "val" in ds_keys:
-                resolved = ["val"]
+
+            run_block = getattr(self.config, "run_cfg", None)
+            eval_enabled = bool(getattr(run_block, "evaluate", False))
+            cfg_vs_raw = getattr(run_block, "val_splits", None)
+
+            if not eval_enabled:
+                resolved = []
+            elif isinstance(cfg_vs_raw, list):
+                resolved = [s for s in cfg_vs_raw if s in ds_keys]
+            else:
+                resolved = ["val"] if "val" in ds_keys else []
+
             return resolved
         except Exception:
             return []
+
 
     @property
     def test_splits(self):
@@ -285,6 +319,46 @@ class RunnerBase:
             "or chained (webdataset.DataPipeline)."
         )
 
+        # Optionally auto-create a small validation split from train if missing or empty
+        try:
+            ratio = float(getattr(self.config.run_cfg, "auto_val_split_ratio", 0.1))
+        except Exception:
+            ratio = 0.1
+        if ratio and ratio > 0:
+            for ds_name, splits in list(self.datasets.items()):
+                try:
+                    if not isinstance(splits, dict):
+                        continue
+                    has_train = ("train" in splits)
+                    has_val = ("val" in splits)
+                    val_empty = False
+                    if has_val:
+                        try:
+                            v = splits["val"]
+                            val_empty = hasattr(v, "__len__") and (len(v) == 0)
+                        except Exception:
+                            val_empty = True
+                    if has_train and (not has_val or val_empty):
+                        base = splits["train"]
+                        if hasattr(base, "__len__") and hasattr(base, "__getitem__"):
+                            n = len(base)
+                            if n >= 2:
+                                val_n = max(1, min(n - 1, int(n * ratio)))
+                                rng = random.Random(int(getattr(self.config.run_cfg, "seed", 42)) ^ (hash(ds_name) & 0xFFFFFFFF))
+                                idx = list(range(n))
+                                rng.shuffle(idx)
+                                val_idx = idx[:val_n]
+                                train_idx = idx[val_n:]
+                                splits["val"] = Subset(base, val_idx)
+                                splits["train"] = Subset(base, train_idx)
+                                logging.info("[runner] Auto-created val split for %s: %d/%d (%.2f%%)", ds_name, val_n, n, 100.0 * val_n / n)
+                            else:
+                                logging.info("[runner] Skip auto val for %s: train size too small (%d)", ds_name, n)
+                        else:
+                            logging.info("[runner] Skip auto val for %s: dataset not indexable/has no length", ds_name)
+                except Exception as e:
+                    logging.warning("[runner] Auto val split failed for %s: %s", ds_name, e)
+
         # Per-dataset batch_size override support
         batch_sizes = {
             name: getattr(self.config.datasets_cfg, name).get("batch_size", 6)
@@ -333,6 +407,22 @@ class RunnerBase:
         )
 
         self._dataloaders = {k: v for k, v in zip(split_names, dataloaders)}
+        # Recompute valid_splits now that datasets/dataloaders are finalized
+        try:
+            available = set(self.datasets.keys()) | set(self._dataloaders.keys())
+            run_block = getattr(self.config, "run_cfg", None)
+            eval_enabled = bool(getattr(run_block, "evaluate", False))
+            cfg_vs_raw = getattr(run_block, "val_splits", None)
+            if not eval_enabled:
+                resolved_now = []
+            elif isinstance(cfg_vs_raw, list):
+                resolved_now = [s for s in cfg_vs_raw if s in available]
+            else:
+                resolved_now = ["val"] if "val" in available else []
+            self._valid_splits = resolved_now
+            logging.info("[runner] Recomputed valid_splits post-reorg: %s (available=%s)", self._valid_splits, sorted(available))
+        except Exception as e:
+            logging.warning("[runner] Failed to recompute valid_splits post-reorg: %s", e)
         return self._dataloaders
 
     def create_loaders(
@@ -436,7 +526,7 @@ class RunnerBase:
     def scaler(self):
         amp = self.config.run_cfg.get("amp", False)
         if amp and self._scaler is None:
-            self._scaler = torch.cuda.amp.GradScaler()
+            self._scaler = torch.amp.GradScaler("cuda")
         return self._scaler
 
     @property
@@ -501,13 +591,31 @@ class RunnerBase:
         best_epoch = 0
 
         self.log_config()
+        # Ensure dataloaders are constructed early (needed to resolve valid_splits in eval-only)
+        _ = self.dataloaders
         logging.info(
             "[runner] Enter train(): train_splits=%s | valid_splits=%s | ds_keys=%s",
-            self.train_splits, self.valid_splits, sorted(self.datasets.keys())
+            self.train_splits,
+            self.valid_splits,
+            sorted(self.datasets.keys()),
         )
+        logging.info(
+            "[runner] Eval gate: evaluate=%s, cfg.val_splits=%s, resolved(valid_splits)=%s",
+            bool(getattr(self.config.run_cfg, "evaluate", False)),
+            getattr(self.config.run_cfg, "val_splits", None),
+            self.valid_splits,
+        )
+
+        # Log effective batch size
+        per_gpu_batch = getattr(self.config.datasets_cfg, "strawberry_diagnostic", {}).get("batch_size", 2)
+        world_size = get_world_size()
+        accum_steps = self.accum_grad_iters
+        eff_batch = per_gpu_batch * world_size * accum_steps
+        logging.info(f"effective_batch={eff_batch} (per_gpu={per_gpu_batch}, world={world_size}, accum={accum_steps})")
 
         if self.resume_ckpt_path is not None:
             self._load_checkpoint(self.resume_ckpt_path, model_only=self.evaluate_only)
+
 
         for cur_epoch in range(self.start_epoch, self.max_epoch):
             if not self.evaluate_only:
@@ -601,6 +709,15 @@ class RunnerBase:
         self.task.before_evaluation(model=model, dataset=self.datasets[split_name])
         results = self.task.evaluation(model, data_loader)
 
+        # Compute validation loss if task supports it
+        val_loss = None
+        if hasattr(self.task, 'compute_validation_loss'):
+            val_loss, num_batches = self.task.compute_validation_loss(
+                model, data_loader, self.device,
+                max_steps=getattr(self.config.run_cfg, "max_val_steps", 50)
+            )
+            logging.info(f"val_loss: {val_loss:.6f} (over {num_batches} batches)")
+
         try:
             log_dict = self.task.after_evaluation(
                 val_result=results,
@@ -616,6 +733,16 @@ class RunnerBase:
                 log_dict.setdefault("agg_metrics", 0.0)
             else:
                 log_dict = {"agg_metrics": 0.0}
+
+        # Add validation loss to log if computed
+        if val_loss is not None:
+            log_dict["val_loss"] = val_loss
+
+        # Save best checkpoint by validation loss
+        if val_loss is not None and val_loss < self._best_val_loss:
+            self._best_val_loss = val_loss
+            self._save_checkpoint(cur_epoch, is_best=True)
+            logging.info(f"Saved best by val_loss={val_loss:.6f}")
 
         return log_dict
 
