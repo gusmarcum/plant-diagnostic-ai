@@ -193,16 +193,26 @@ If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the 
 
 ---
 
-## 📁 Project Structure
+# 📁 Project Structure
 
-Inference Dataflow ⬇️
-<img width="3840" height="804" alt="Untitled diagram _ Mermaid Chart-2025-10-04-233422" src="https://github.com/user-attachments/assets/b6f433ad-d25a-4b06-b0c5-e00addd43984" />
-End-to-End Inference Sequence ⬇️
-<img width="3840" height="1730" alt="Untitled diagram _ Mermaid Chart-2025-10-04-233702" src="https://github.com/user-attachments/assets/7bf297ba-d818-48be-a803-d94d6994c62c" />
-Training Pipeline ⬇️
-<img width="3840" height="513" alt="Untitled diagram _ Mermaid Chart-2025-10-04-233939" src="https://github.com/user-attachments/assets/fc1dfc01-c445-4c3f-9398-709c4845fcfc" />
-Project Demo Video ⬇️ (click thumbnail)
-[![Demo Video](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://www.youtube.com/watch?v=-QEf8KkALK4)
+> Quick view of inference dataflow, end-to-end sequence, training pipeline, and a short demo.
+
+## Inference Dataflow
+![Inference Dataflow – Mermaid export](https://github.com/user-attachments/assets/b6f433ad-d25a-4b06-b0c5-e00addd43984)
+
+## End-to-End Inference Sequence
+![End-to-End Inference Sequence – Mermaid export](https://github.com/user-attachments/assets/7bf297ba-d818-48be-a803-d94d6994c62c)
+
+## Training Pipeline
+![Training Pipeline – Mermaid export](https://github.com/user-attachments/assets/fc1dfc01-c445-4c3f-9398-709c4845fcfc)
+
+## Project Demo Video
+[![Watch the demo](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://www.youtube.com/watch?v=-QEf8KkALK4)
+
+---
+
+## Repository Layout
+
 ```
 Plant Diagnostic System/
 ├── demo_v5.py                           # Main Gradio web interface
