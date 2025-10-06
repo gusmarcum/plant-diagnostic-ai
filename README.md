@@ -193,7 +193,25 @@ If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the 
 
 ---
 
-## 📁 Project Structure
+# 📁 Project Structure
+
+> Quick view of inference dataflow, end-to-end sequence, training pipeline, and a short demo.
+
+## Inference Dataflow
+![Inference Dataflow – Mermaid export](https://github.com/user-attachments/assets/b6f433ad-d25a-4b06-b0c5-e00addd43984)
+
+## End-to-End Inference Sequence
+![End-to-End Inference Sequence – Mermaid export](https://github.com/user-attachments/assets/7bf297ba-d818-48be-a803-d94d6994c62c)
+
+## Training Pipeline
+![Training Pipeline – Mermaid export](https://github.com/user-attachments/assets/fc1dfc01-c445-4c3f-9398-709c4845fcfc)
+
+## Project Demo Video
+[![Watch the demo](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://www.youtube.com/watch?v=-QEf8KkALK4)
+
+---
+
+## Repository Layout
 
 ```
 Plant Diagnostic System/
@@ -230,7 +248,7 @@ Plant Diagnostic System/
 ## 🧩 Technical Details
 
 ### **Model Architecture**
-- **ResNet-50**: ImageNet pre-trained, fine-tuned on 7-class strawberry dataset
+- **ResNet-50**: ImageNet pre-trained, fine-tuned on dataset
 - **MiniGPT-v2**: Vision-language model with LLaMA-2-7B backbone
 - **LoRA Fine-tuning**: Efficient adaptation with rank-16 LoRA adapters
 
@@ -252,10 +270,6 @@ Plant Diagnostic System/
 
 - **Multi-Crop Support**: Expand beyond strawberries to other crops
 - **Advanced Augmentation**: More sophisticated data augmentation strategies
-- **Real-time Processing**: Optimize for mobile/edge deployment
-- **Confidence Calibration**: Improve uncertainty quantification
-- **Export Features**: JSON/CSV export for dataset analysis
-- **Docker Deployment**: Containerized deployment option
 
 ---
 
