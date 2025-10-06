@@ -7,9 +7,12 @@ import numpy as np
 from PIL import Image
 import torch
 import gradio as gr
+# SERPAPI Configuration (optional: only used in Enhanced mode)
+SERP_API_KEY = os.getenv("SERP_API_KEY", "")
+SERPAPI_AVAILABLE = False
 try:
     from serpapi import GoogleSearch
-    SERPAPI_AVAILABLE = True
+    SERPAPI_AVAILABLE = bool(SERP_API_KEY)
 except ImportError:
     SERPAPI_AVAILABLE = False
     print("Warning: serpapi not available, web search features disabled")
@@ -39,10 +42,6 @@ logging.basicConfig(filename='app.log', filemode='a',
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     level=logging.ERROR)
 
-# SERPAPI Configuration
-SERP_API_KEY = 'fb6c393ddf8c395e92e9f5e4244f1e3ee75084f85c94aabde8954cd12c5df1ea'
-if not SERP_API_KEY:
-    raise ValueError("SERP_API_KEY environment variable not set.")
 
 # Parse arguments
 def parse_args():
@@ -89,36 +88,65 @@ _CANON_LABEL_MAP = {
     "white_mold": "white mold",  
 }
 
+# Global acceptance defaults (tune if needed)
+_DEFAULT_UNKNOWN_THRESH = 0.55     # minimum p1 to accept top-1
+_MIN_MARGIN_OVER_TOP2   = 0.08     # only used if p2 provided
+
 def _accept_label(pred) -> str:
+    """
+    Decide whether to accept ResNet's top prediction or return 'unknown'.
+    pred fields expected:
+        label: str (top-1 class name)
+        p1: float (top-1 prob)
+        p2: float (optional, top-2 prob)
+    """
     if not pred:
-        print(f"[ResNet] No prediction returned")
+        print("[ResNet] No prediction returned")
         return "unknown"
-    lbl = str(pred.get("label", "")).lower().strip()
-    p1  = float(pred.get("p1", 0.0))
-    print(f"[ResNet] Label: {lbl}, Confidence: {p1:.3f} (always accepting top prediction)")
-    
-    # Always accept the top prediction - ResNet is accurate
-    if lbl in _CANON_LABEL_MAP:
-        return _CANON_LABEL_MAP[lbl]
-    
-    # Fallback for unknown labels
-    print(f"[ResNet] Unknown label: {lbl}")
-    return "unknown"
+
+    lbl_raw = str(pred.get("label", "")).strip()
+    lbl = lbl_raw.lower()
+    p1 = float(pred.get("p1", 0.0))
+    p2 = float(pred.get("p2", 0.0)) if "p2" in pred else 0.0
+
+    # Map to canon label (what UI shows)
+    canon = _CANON_LABEL_MAP.get(lbl, lbl)
+
+    # Per-class threshold override falls back to global default
+    thr = float(_CLASS_THRESH.get(lbl, _DEFAULT_UNKNOWN_THRESH))
+    margin_ok = (p2 == 0.0) or ((p1 - p2) >= _MIN_MARGIN_OVER_TOP2)
+
+    print(f"[ResNet] Label: {lbl} -> {canon}, p1={p1:.3f}, p2={p2:.3f}, thr={thr:.2f}, margin_ok={margin_ok}")
+
+    if p1 < thr:
+        print("[ResNet] BELOW THRESH -> unknown")
+        return "unknown"
+    if not margin_ok:
+        print("[ResNet] SMALL MARGIN OVER TOP2 -> unknown")
+        return "unknown"
+
+    # Accept only known labels; unknown string falls back
+    return _CANON_LABEL_MAP.get(lbl, "unknown")
 
 def _postprocess_caption(text: str) -> str:
+    """Light cleanup for LLM output: normalize quotes and spacing, keep content intact."""
     if not text:
         return ""
     t = text.strip()
-    t = t.replace(""", "").replace(""", "").replace("'", "").replace('"', "")
-    t = re.sub(r'</?[^>\s]{1,32}>?', '', t)
-    t = t.replace('\u200b', '').replace('<', '').replace('>', '').replace('\\n', '\n')
-    
-    # Fix formatting issues
-    t = re.sub(r'\*\s*', '- ', t)  # Convert asterisks to dashes for bullet points
-    t = re.sub(r'\n\s*\n', '\n\n', t)  # Clean up multiple newlines
-    t = re.sub(r'([.!?])\s*([A-Z])', r'\1\n\n\2', t)  # Add line breaks after sentences
-    
-    # Don't truncate - let the full response through
+
+    # Normalize curly quotes -> straight quotes
+    t = (t.replace("\u201c", '"').replace("\u201d", '"')   # " "
+         .replace("\u2018", "'").replace("\u2019", "'"))   # '  '
+
+    # Remove simple HTML-ish tags and zero-width chars
+    t = re.sub(r"</?[^>\s]{1,32}>?", "", t)
+    t = t.replace("\u200b", "").replace("\\n", "\n")
+    t = t.replace("<", "").replace(">", "")  # defensive
+
+    # Formatting touch-ups
+    t = re.sub(r"\*\s*", "• ", t)                 # '* item' -> '• item'
+    t = re.sub(r"\n\s*\n", "\n\n", t)             # collapse extra blank lines
+    t = re.sub(r"([.!?])\s+([A-Z])", r"\1\n\n\2", t)  # paragraph break after sentences
     return t
 
 # Load configuration
@@ -253,11 +281,15 @@ def _empty_fig(msg):
     return fig
 
 @lru_cache(maxsize=1)
-def _load_csvs():
+def _load_csvs(nodes_path=None, relationships_path=None):
     """Load and cache CSV files."""
     try:
-        n = pd.read_csv('kg_nodes_faostat.csv', low_memory=False)
-        r = pd.read_csv('kg_relationships_faostat.csv', low_memory=False)
+        # Use provided paths or fall back to defaults
+        nodes_file = nodes_path if nodes_path else 'kg_nodes_faostat.csv'
+        rels_file = relationships_path if relationships_path else 'kg_relationships_faostat.csv'
+        
+        n = pd.read_csv(nodes_file, low_memory=False)
+        r = pd.read_csv(rels_file, low_memory=False)
         n['id'] = n['id'].astype(str).str.strip()
         r['start_id'] = r['start_id'].astype(str).str.strip()
         r['end_id'] = r['end_id'].astype(str).str.strip()
@@ -279,7 +311,17 @@ def create_knowledge_graph(
         if not nodes_fp.exists(): nodes_fp = base / nodes_path
         if not rels_fp.exists(): rels_fp = base / relationships_path
 
-        nodes_df, relationships_df = _load_csvs()
+        # Read from the resolved paths directly (not the cached helper)
+        try:
+            nodes_df = pd.read_csv(nodes_fp, low_memory=False)
+            relationships_df = pd.read_csv(rels_fp, low_memory=False)
+            
+            # Clean the data
+            nodes_df['id'] = nodes_df['id'].astype(str).str.strip()
+            relationships_df['start_id'] = relationships_df['start_id'].astype(str).str.strip()
+            relationships_df['end_id'] = relationships_df['end_id'].astype(str).str.strip()
+        except FileNotFoundError:
+            return _empty_fig("CSV files not found or empty")
         
         if nodes_df.empty or relationships_df.empty:
             return _empty_fig("CSV files not found or empty")
@@ -557,9 +599,10 @@ def process_chat_with_image(user_message, chatbot, chat_state, gr_img, img_list,
             pred = diagnose_or_none(model, img_path, img_size=256)
             print(f"[ResNet] Raw prediction: {pred}")
         except Exception as e:
-            print(f"[resnet] warn: {e}")
+            print(f"[ResNet] Error during prediction: {e}")
             import traceback
             traceback.print_exc()
+            pred = None  # Ensure pred is None on error
 
         # Accept/canonize label once; no extra thresholds here
         final_label = "unknown"
@@ -577,35 +620,85 @@ def process_chat_with_image(user_message, chatbot, chat_state, gr_img, img_list,
             p1 = 0.0
 
         # ---------------------------
-        # Two fixed system prompts
+        # system prompts
         # ---------------------------
-        # NOTE: Model was trained on <image> only; keep prompts simple and deterministic.
-        chat_state.system = (
-            "<<SYS>>You are a plant diagnostician. The diagnosis has already been determined: {final_label.title()}\n"
-            "Your ONLY task is to examine the image and explain WHY this diagnosis is correct.\n"
-            "You MUST use this exact diagnosis: {final_label.title()}\n"
-            "Do not make your own diagnosis. Do not disagree with this diagnosis.\n"
-            "Provide a detailed medical report in this EXACT format:\n"
-            "1) Diagnosis: {final_label.title()}\n"
-            "2) Visible cues: Describe specific visual observations from the image that support this diagnosis.\n"
-            "3) Recommendation: Provide specific, actionable steps to address this issue.\n"
-            "Use proper formatting:\n"
-            "- Use numbered lists (1), 2), 3))\n"
-            "- Use bullet points with dashes (-) not asterisks\n"
-            "- Write complete, well-formed sentences\n"
-            "- Be detailed and thorough\n"
-            "- Do not add greetings, disclaimers, or extra text\n"
-            "CRITICAL: You MUST complete your response fully. Do not cut off mid-sentence. Finish ALL recommendations completely.\n"
-            "Continue writing until you have provided a complete medical report with all necessary details.\n"
-            "Do not stop until you have finished all recommendations.\n"
-            "<</SYS>>"
-        )
+        # Check if this looks like a non-plant image (person, object, etc.)
+        # If confidence is very low or it's clearly not a plant, force unknown
+        if final_label != "unknown" and pred:
+            p1 = float(pred.get("p1", 0.0))
+            # If confidence is below 70%, it's likely not a plant at all
+            if p1 < 0.7:
+                final_label = "unknown"
+                print(f"[ResNet] Low confidence ({p1:.3f}) - treating as unknown")
+            # Also check if it's predicting "healthy" with low confidence (likely non-plant)
+            elif final_label.lower() == "healthy" and p1 < 0.8:
+                final_label = "unknown"
+                print(f"[ResNet] 'Healthy' with low confidence ({p1:.3f}) - likely non-plant, treating as unknown")
+        
+        if final_label == "unknown":
+            # Softer prompt when we don't trust the classifier
+            chat_state.system = """
+<<SYS>>You are a plant diagnostician. Confidence is too low to choose a diagnosis.
+
+RESPONSE STRUCTURE (follow exactly):
+1. State: "Based on the image provided, I cannot confidently diagnose the plant with a specific disease or condition."
+
+2. List exactly 3 possible causes:
+   - Lack of close-up images: To accurately diagnose a plant, it's essential to examine its leaves, stems, and roots closely. Without close-up images of these areas, it's challenging to identify any issues or abnormalities.
+   - Limited view of the plant: The image provided only shows the top portion of the plant, making it difficult to evaluate the overall health of the plant.
+   - The image doesn't reveal any obvious signs of pests or diseases, such as holes in the leaves, discoloration, or unusual growths. Without more information, it's challenging to identify the cause of any issues.
+
+3. List exactly 3 recommended fixes:
+   - Close-up images of the leaves, stems, and roots to examine for any signs of pests, diseases, or abnormalities.
+   - Images of the plant's overall growth, including its size, shape, and any unusual features.
+   - Images of the soil and surrounding environment to assess the plant's root health and potential stressors.
+
+4. End with: "Based on these additional images, we can begin to identify potential causes for the plant's decline or health. If you have any further questions or concerns, please feel free to ask."
+
+FORMATTING REQUIREMENTS:
+- Use compact numbered lists: "1. explanation" (not "1.\nexplanation")
+- No extra line breaks between list items
+- Keep explanations on the same line as numbers
+- Use dashes (-) for bullet points, not asterisks (*)
+- Follow the exact structure above - do not deviate
+
+Do not provide differential possibilities or lengthy explanations.<</SYS>>
+""".strip()
+        else:
+            # Force explanation of the accepted label
+            chat_state.system = f"""
+<<SYS>>You are a plant diagnostician. The diagnosis has already been determined: {final_label.title()}
+Your ONLY task is to examine the image and explain WHY this diagnosis is correct.
+You MUST use this exact diagnosis: {final_label.title()}
+Do not make your own diagnosis. Do not disagree with this diagnosis.
+Provide a detailed medical report in this EXACT format:
+1) Diagnosis: {final_label.title()}
+2) Visible cues: Describe specific visual observations from the image that support this diagnosis.
+3) Recommendation: Provide specific, actionable steps to address this issue.
+Use proper formatting:
+- Use numbered lists (1), 2), 3))
+- Use bullet points with dashes (-) not asterisks
+- Write complete, well-formed sentences
+- Be detailed and thorough
+- Do not add greetings, disclaimers, or extra text
+CRITICAL: You MUST complete your response fully. Do not cut off mid-sentence. Finish ALL recommendations completely.
+Continue writing until you have provided a complete medical report with all necessary details.
+Do not stop until you have finished all recommendations.
+<</SYS>>
+""".strip()
 
         # Direct, focused prompt for better responses
         if user_message and user_message.strip():
             ask_text = user_message.strip()
         else:
             ask_text = f"Examine this image and explain why the diagnosis is {final_label.title()}."
+        
+        # Add small web context when available in Enhanced mode
+        if is_enhanced and SERPAPI_AVAILABLE and final_label != "unknown":
+            ctx = fetch_serp_context(f"strawberry {final_label} treatment field management")
+            if ctx:
+                ask_text += f"\n\nAdditional context: {ctx[:600]}"
+        
         _ = chat.ask(ask_text, chat_state)
 
         ans = chat.answer(
@@ -626,6 +719,14 @@ def process_chat_with_image(user_message, chatbot, chat_state, gr_img, img_list,
         if p1 > 0:
             badge = "🟢" if p1 >= 0.90 else "🟡" if p1 >= 0.70 else "🔴"
             body = f"{badge} **Confidence: {p1:.1%}**\n\n{body}"
+
+        # Clean up temporary file
+        try:
+            import os
+            if os.path.exists(img_path):
+                os.remove(img_path)
+        except Exception:
+            pass  # Ignore cleanup errors
 
         return (chatbot + [[user_message, body]], chat_state, img_list)
 
@@ -973,7 +1074,7 @@ with gr.Blocks(
 
 # Launch
 if __name__ == "__main__":
-    import random
-    port = random.randint(30000, 39999)
     demo.queue(max_size=20)
-    demo.launch(server_name="0.0.0.0", server_port=port, share=True)
+    server_name = os.getenv("GRADIO_SERVER_NAME", "0.0.0.0")
+    server_port = int(os.getenv("GRADIO_SERVER_PORT", "7861"))
+    demo.launch(server_name=server_name, server_port=server_port, share=False)
