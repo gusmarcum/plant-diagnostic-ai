@@ -1,4 +1,5 @@
 #William Starks - Plant Diagnostic MiniGPT, derived from demo_v4.py and modified into a resnet50-wired strawberry pathologist. WIP
+#Gus Marcum - Collaborator: Security, debugging, and system improvements
 #Added CSS to the gradio app for user interface improvements
 import argparse
 import os
