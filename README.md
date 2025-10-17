@@ -200,7 +200,7 @@ The system provides structured medical reports with:
 - **Webcam Usage**: Allow camera access, then click the camera icon to capture real-time images
 - **Image Quality**: Upload clear, well-lit images of affected plant areas
 - **Multiple Views**: Include both close-ups and full plant views when possible
-- **Temperature Settings**: Use temperature 0.1-0.3 for balanced creativity and accuracy
+- **Temperature Settings**: Use temperatures between 0.1-0.3 for balanced creativity and accuracy
 - **Additional Features**: Check the Knowledge Graph tab for related agricultural insights
 
 ---
@@ -229,7 +229,7 @@ Image Upload → ResNet Classification → Label Mapping → MiniGPT Explanation
 
 **Key Features:**
 - **Ground Truth Approach**: ResNet diagnosis is treated as absolute truth
-- **No Label Drift**: MiniGPT explains, doesn't override the diagnosis
+- **No Label Drift**: MiniGPT explains, but doesn't override the diagnosis
 - **Confidence Scoring**: Visual indicators based on ResNet confidence
 - **Doctor-Grade Reports**: Structured, professional medical format
 
@@ -259,11 +259,11 @@ If `knowledge_graph/kg_nodes_faostat.csv` and `knowledge_graph/kg_relationships_
 ### Plant Diagnostic Project Overview
 [![Plant Diagnostic Project Demo](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://youtu.be/-QEf8KkALK4?si=mVatePAGOcpFYOXw)
 
-### Current Demo (demo_v5)
+### Current Demo Workflow (demo_v5)
 [![Demo v5 - Plant Diagnostic System](https://img.youtube.com/vi/eduSbkigjLY/0.jpg)](https://youtu.be/eduSbkigjLY?si=24JHh-qNNbvROLdD)
 
-### Webcam Functionality and Unknown Scenario Feature
-[![Webcam and Unknown Scenario Demo](https://img.youtube.com/vi/PXN6_6oj7_M/0.jpg)](https://youtu.be/PXN6_6oj7_M)
+### Webcam Functionality and other Features
+[![Webcam/Launch Script/Unknown Scenario Demo](https://img.youtube.com/vi/PXN6_6oj7_M/0.jpg)](https://youtu.be/PXN6_6oj7_M)
 
 ---
 
@@ -272,8 +272,6 @@ If `knowledge_graph/kg_nodes_faostat.csv` and `knowledge_graph/kg_relationships_
 ```
 Plant Diagnostic System/
 ├── demo_v5.py                           # Main Gradio web interface (v2.0)
-├── demo.py                             # Original MiniGPT-4 demo
-├── demo_v4.py                          # Previous version demo
 ├── launch_demo_v5.sh                   # Convenient launch script
 ├── resnet_classifier.py                 # ResNet-50 model and inference
 ├── train.py                            # Training script
