@@ -152,6 +152,34 @@ Experience real-time plant diagnosis with live camera feed:
 5. Click the camera icon again to capture
 6. Get instant AI-powered plant diagnosis!
 
+---
+
+## 🎥 Videos
+
+### **System Demonstration Videos**
+
+#### **Plant Diagnostic System - Full Demo**
+[![Plant Diagnostic System - Full Demo](https://img.youtube.com/vi/eduSbkigjLY/0.jpg)](https://youtu.be/eduSbkigjLY?si=hqwsnJdp-dE8X3sd)
+
+**Watch**: [https://youtu.be/eduSbkigjLY](https://youtu.be/eduSbkigjLY?si=hqwsnJdp-dE8X3sd)
+
+Comprehensive demonstration of the Plant Diagnostic System showing:
+- Complete workflow from image capture to diagnosis
+- ResNet classification and MiniGPT-v2 explanation
+- Knowledge graph visualization
+- User interface features and capabilities
+
+#### **Advanced Features & Webcam Integration**
+[![Advanced Features & Webcam Integration](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://youtu.be/-QEf8KkALK4?si=Yy40iCD6IiNp1YLl)
+
+**Watch**: [https://youtu.be/-QEf8KkALK4](https://youtu.be/-QEf8KkALK4?si=Yy40iCD6IiNp1YLl)
+
+Deep dive into advanced system features including:
+- Webcam integration and real-time capture
+- Enhanced analysis with web research
+- Confidence scoring and medical report generation
+- Troubleshooting and best practices
+
 ### **Training Mode**
 
 Train the MiniGPT-v2 model on strawberry diagnostic data:
@@ -361,7 +389,7 @@ Please respect upstream licenses and dataset terms of use.
 ```bibtex
 @software{plant_diagnostic_system,
   title  = {Plant Diagnostic System: AI-Powered Strawberry Disease Detection},
-  author = {William Starks, Kiriti Vundavilli},
+  author = {William Starks, Gus Marcum, Kiriti Vundavilli},
   year   = {2025},
   note   = {GitHub repository: Advanced plant health analysis with ResNet + MiniGPT-v2}
 }
