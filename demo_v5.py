@@ -1,13 +1,27 @@
+
 #William Starks - Plant Diagnostic MiniGPT, derived from demo_v4.py and modified into a resnet50-wired strawberry pathologist. WIP
-#Gus Marcum - Collaborator: Security, debugging, and system improvements
+#Gus Marcum - Collaborator: debugging, and system improvements
+
 #Added CSS to the gradio app for user interface improvements
+#Standard library imports
 import argparse
 import os
 import re
+import logging
+from datetime import datetime
+from functools import lru_cache
+from pathlib import Path
+
+# Third-party imports
 import numpy as np
-from PIL import Image
+import pandas as pd
 import torch
+import torch.backends.cudnn as cudnn
 import gradio as gr
+import networkx as nx
+import plotly.graph_objects as go
+from PIL import Image
+
 # SERPAPI Configuration (optional: only used in Enhanced mode)
 SERP_API_KEY = os.getenv("SERP_API_KEY", "")
 SERPAPI_AVAILABLE = False
@@ -17,14 +31,6 @@ try:
 except ImportError:
     SERPAPI_AVAILABLE = False
     print("Warning: serpapi not available, web search features disabled")
-import torch.backends.cudnn as cudnn
-import networkx as nx
-import pandas as pd
-from pathlib import Path
-import plotly.graph_objects as go
-from functools import lru_cache
-import logging
-from datetime import datetime
 
 from minigpt4.common.config import Config
 from minigpt4.common.registry import registry
@@ -52,6 +58,8 @@ def parse_args():
     parser.add_argument("--options", default=None, help="additional options to override the configuration.")
     parser.add_argument("--resnet-anchor", action="store_true",
                     help="Anchor first user turn with ResNet diagnosis when confident")
+    parser.add_argument("--share", action="store_true",
+                    help="Create a public share link (accessible from anywhere)")
     args = parser.parse_args()
     return args
 
@@ -61,12 +69,33 @@ _RESNET_MODEL = None
 def _get_resnet():
     global _RESNET_MODEL
     if _RESNET_MODEL is None:
-        _RESNET_MODEL = load_resnet("plant_diagnostic/models/resnet_straw_final.pth")
+        # Try multiple possible paths for the ResNet model
+        model_paths = [
+            "plant_diagnostic/models/resnet_straw_final.pth",
+            Path(__file__).parent / "plant_diagnostic" / "models" / "resnet_straw_final.pth",
+            Path(__file__).parent / "models" / "resnet_straw_final.pth"
+        ]
+        
+        model_path = None
+        for path in model_paths:
+            if Path(path).exists():
+                model_path = str(path)
+                break
+        
+        if model_path is None:
+            raise FileNotFoundError(f"ResNet model not found. Tried: {model_paths}")
+        
+        _RESNET_MODEL = load_resnet(model_path)
     return _RESNET_MODEL
 
 args = parse_args()
 if args.resnet_anchor:
-    _ = _get_resnet()
+    try:
+        _ = _get_resnet()
+        print("[ResNet] Model loaded successfully")
+    except Exception as e:
+        print(f"[ResNet] Warning: Could not load ResNet model: {e}")
+        print("[ResNet] Continuing without ResNet anchor functionality")
 
 # --- Fixed-label helpers ---
 _CLASS_THRESH = {
@@ -286,8 +315,8 @@ def _load_csvs(nodes_path=None, relationships_path=None):
     """Load and cache CSV files."""
     try:
         # Use provided paths or fall back to defaults
-        nodes_file = nodes_path if nodes_path else 'kg_nodes_faostat.csv'
-        rels_file = relationships_path if relationships_path else 'kg_relationships_faostat.csv'
+        nodes_file = nodes_path if nodes_path else 'knowledge_graph/kg_nodes_faostat.csv'
+        rels_file = relationships_path if relationships_path else 'knowledge_graph/kg_relationships_faostat.csv'
         
         n = pd.read_csv(nodes_file, low_memory=False)
         r = pd.read_csv(rels_file, low_memory=False)
@@ -300,8 +329,8 @@ def _load_csvs(nodes_path=None, relationships_path=None):
         return pd.DataFrame(), pd.DataFrame()
 
 def create_knowledge_graph(
-    nodes_path='kg_nodes_faostat.csv',
-    relationships_path='kg_relationships_faostat.csv',
+    nodes_path='knowledge_graph/kg_nodes_faostat.csv',
+    relationships_path='knowledge_graph/kg_relationships_faostat.csv',
     max_edges=2000
 ):
     """Create the main knowledge graph visualization"""
@@ -569,41 +598,57 @@ def process_chat_with_image(user_message, chatbot, chat_state, gr_img, img_list,
         chat.encode_img(img_list)
 
         # Lightweight ResNet pass (just to get a label + confidence)
-        img_path = "/tmp/tmp_image.jpg"
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+            img_path = tmp_file.name
         gr_img.save(img_path)
         pred = None
+        
+        # Check if ResNet is available
         try:
-            # Debug: check raw probabilities before thresholding
             model = _get_resnet()
-            with Image.open(img_path) as im:
-                img = im.convert("RGB")
-            
-            from resnet_classifier import _tfm, _DEVICE, _CLASSES
-            import torch.nn.functional as F
-            
-            x = _tfm(256)(img).unsqueeze(0).to(_DEVICE)
-            
-            # 2-view TTA
-            logits1 = model(x)
-            logits2 = model(torch.flip(x, dims=[3]))
-            logits = (logits1 + logits2) / 2
-            
-            probs = F.softmax(logits / 0.78, dim=1).squeeze(0)
-            pvals, idxs = torch.sort(probs, descending=True)
-            
-            print(f"[ResNet] Debug - Top 3 raw probabilities:")
-            for j in range(min(3, len(_CLASSES))):
-                class_name = _CLASSES[idxs[j]]
-                prob = float(pvals[j])
-                print(f"  {j+1}. {class_name}: {prob:.3f}")
-            
-            pred = diagnose_or_none(model, img_path, img_size=256)
-            print(f"[ResNet] Raw prediction: {pred}")
         except Exception as e:
-            print(f"[ResNet] Error during prediction: {e}")
-            import traceback
-            traceback.print_exc()
-            pred = None  # Ensure pred is None on error
+            print(f"[ResNet] Model not available: {e}")
+            model = None
+        
+        if model is not None:
+            try:
+                # Debug: check raw probabilities before thresholding
+                with Image.open(img_path) as im:
+                    img = im.convert("RGB")
+                
+                from resnet_classifier import _tfm, _DEVICE, _CLASSES
+                import torch.nn.functional as F
+                
+                x = _tfm(256)(img).unsqueeze(0).to(_DEVICE)
+                
+                # 2-view TTA
+                logits1 = model(x)
+                logits2 = model(torch.flip(x, dims=[3]))
+                logits = (logits1 + logits2) / 2
+                
+                probs = F.softmax(logits / 0.78, dim=1).squeeze(0)
+                pvals, idxs = torch.sort(probs, descending=True)
+                
+                print(f"[ResNet] Debug - Top 3 raw probabilities:")
+                for j in range(min(3, len(_CLASSES))):
+                    class_name = _CLASSES[idxs[j]]
+                    prob = float(pvals[j])
+                    print(f"  {j+1}. {class_name}: {prob:.3f}")
+                
+                pred = diagnose_or_none(model, img_path, img_size=256)
+                print(f"[ResNet] Raw prediction: {pred}")
+            except FileNotFoundError as e:
+                print(f"[ResNet] Model file not found: {e}")
+                pred = None
+            except torch.cuda.OutOfMemoryError as e:
+                print(f"[ResNet] GPU memory error: {e}")
+                pred = None
+            except Exception as e:
+                print(f"[ResNet] Error during prediction: {e}")
+                import traceback
+                traceback.print_exc()
+                pred = None  # Ensure pred is None on error
 
         # Accept/canonize label once; no extra thresholds here
         final_label = "unknown"
@@ -627,12 +672,12 @@ def process_chat_with_image(user_message, chatbot, chat_state, gr_img, img_list,
         # If confidence is very low or it's clearly not a plant, force unknown
         if final_label != "unknown" and pred:
             p1 = float(pred.get("p1", 0.0))
-            # If confidence is below 70%, it's likely not a plant at all
-            if p1 < 0.7:
+            # If confidence is below 65%, it's likely not a plant at all
+            if p1 < 0.65:
                 final_label = "unknown"
                 print(f"[ResNet] Low confidence ({p1:.3f}) - treating as unknown")
             # Also check if it's predicting "healthy" with low confidence (likely non-plant)
-            elif final_label.lower() == "healthy" and p1 < 0.8:
+            elif final_label.lower() == "healthy" and p1 < 0.75:
                 final_label = "unknown"
                 print(f"[ResNet] 'Healthy' with low confidence ({p1:.3f}) - likely non-plant, treating as unknown")
         
@@ -731,9 +776,18 @@ Do not stop until you have finished all recommendations.
 
         return (chatbot + [[user_message, body]], chat_state, img_list)
 
+    except FileNotFoundError as e:
+        error_msg = "❌ **Model Error**: Required model files not found. Please check that all model files are properly installed."
+        logging.error(f"File not found: {str(e)}")
+        return (chatbot + [[user_message, error_msg]], chat_state, img_list)
+    except torch.cuda.OutOfMemoryError as e:
+        error_msg = "❌ **Memory Error**: GPU memory insufficient. Please try with a smaller image or restart the application."
+        logging.error(f"CUDA OOM: {str(e)}")
+        return (chatbot + [[user_message, error_msg]], chat_state, img_list)
     except Exception as e:
-        logging.error(f"Error in chat processing: {str(e)}")
-        return (chatbot + [[user_message, f"❌ Error: {str(e)}"]], chat_state, img_list)
+        error_msg = "❌ **Unexpected Error**: An error occurred during processing. Please try again or contact support if the issue persists."
+        logging.error(f"Unexpected error in chat processing: {str(e)}")
+        return (chatbot + [[user_message, error_msg]], chat_state, img_list)
 
 
 
@@ -744,27 +798,54 @@ def reset_chat(chat_state, img_list):
 # Load custom CSS from external file
 def load_custom_css():
     """Load the dark theme CSS from external file."""
-    css_file_path = Path(__file__).resolve().parent / "dark_theme.css"
+    # Try multiple possible CSS file locations
+    css_paths = [
+        Path(__file__).resolve().parent / "dark_theme.css",
+        Path("dark_theme.css"),
+        Path(__file__).parent / "dark_theme.css"
+    ]
     
-    # Fallback CSS if file not found
+    # Enhanced fallback CSS
     fallback_css = """
     .gradio-container {
         background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         color: #e0e0e0 !important;
     }
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 500;
+        background: rgba(72, 187, 120, 0.8);
+        color: white;
+        border: 1px solid rgba(72, 187, 120, 0.3);
+    }
+    .custom-tab {
+        background: rgba(20, 20, 35, 0.7);
+        border-radius: 8px;
+        margin: 5px;
+    }
+    .image-upload {
+        border: 2px dashed rgba(0, 212, 255, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+    }
     """
     
-    try:
-        if css_file_path.exists():
-            with open(css_file_path, 'r', encoding='utf-8') as f:
-                return f.read()
-        else:
-            print(f"[WARNING] CSS file not found at {css_file_path}. Using fallback CSS.")
-            return fallback_css
-    except Exception as e:
-        print(f"[ERROR] Failed to load CSS: {e}. Using fallback CSS.")
-        return fallback_css
+    for css_path in css_paths:
+        try:
+            if css_path.exists():
+                with open(css_path, 'r', encoding='utf-8') as f:
+                    css_content = f.read()
+                    print(f"[CSS] Loaded from: {css_path}")
+                    return css_content
+        except Exception as e:
+            print(f"[CSS] Failed to load from {css_path}: {e}")
+            continue
+    
+    print("[CSS] Using fallback CSS - no external CSS file found")
+    return fallback_css
 
 # Load the CSS
 custom_css = load_custom_css()
@@ -841,12 +922,26 @@ with gr.Blocks(
             with gr.Row():
                 # Left column - Image upload and controls
                 with gr.Column(scale=1):
-                    gr.Markdown("### 📸 Upload Image")
+                    gr.Markdown("### 📸 Capture or Upload Image")
+                    
+                    # Image component with both webcam and upload
                     image = gr.Image(
                         type="pil", 
+                        sources=["webcam", "upload"],
                         label="Plant Image",
                         elem_classes="image-upload"
                     )
+                    
+                    # Instructions for webcam use
+                    gr.HTML("""
+                        <div style="padding: 8px; background: rgba(0, 212, 255, 0.1); 
+                                    border-radius: 6px; border: 1px solid rgba(0, 212, 255, 0.2); margin-top: 10px;">
+                            <p style="margin: 0; color: #00d4ff; font-size: 0.85em;">
+                                📷 <strong>Webcam:</strong> Click camera icon → Allow access → Click again to capture<br>
+                                🖼️ <strong>Upload:</strong> Click to select image file
+                            </p>
+                        </div>
+                    """)
                     
                     # Analysis settings card
                     with gr.Group():
@@ -854,7 +949,7 @@ with gr.Blocks(
                         temperature = gr.Slider(
                             minimum=0.01,
                             maximum=0.5,
-                            value=0.2,  # Higher default for more creative responses
+                            value=0.2,
                             step=0.01,
                             label="🌡️ Temperature",
                             info="Lower = More focused | Higher = More creative"
@@ -865,7 +960,7 @@ with gr.Blocks(
                             <div style="padding: 10px; background: rgba(0, 212, 255, 0.1); 
                                         border-radius: 8px; border: 1px solid rgba(0, 212, 255, 0.3);">
                                 <p style="margin: 0; color: #00d4ff; font-size: 0.9em;">
-                                    💡 Tip: Upload a clear image of your strawberry plant for best results
+                                    💡 Tip: Use webcam for real-time diagnosis or upload a clear image
                                 </p>
                             </div>
                         """)
@@ -989,6 +1084,7 @@ with gr.Blocks(
                     <h3 style="color: #b794f4; margin-bottom: 15px;">🎯 Features</h3>
                     <ul style="color: #d0d0d0; line-height: 1.8;">
                         <li><strong style="color: #00d4ff;">Dual AI Analysis:</strong> ResNet classifier + MiniGPT-v2 vision model</li>
+                        <li><strong style="color: #00d4ff;">Webcam Support:</strong> Real-time image capture for instant diagnosis</li>
                         <li><strong style="color: #00d4ff;">Web Integration:</strong> Real-time information from SERPAPI</li>
                         <li><strong style="color: #00d4ff;">Knowledge Graph:</strong> Interactive FAOSTAT agricultural data visualization</li>
                         <li><strong style="color: #00d4ff;">Modern UI:</strong> Dark theme with responsive design</li>
@@ -1017,7 +1113,8 @@ with gr.Blocks(
                 <div style="background: rgba(25, 25, 40, 0.8); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                     <h3 style="color: #b794f4; margin-bottom: 15px;">🔍 Best Practices</h3>
                     <ol style="color: #d0d0d0; line-height: 1.8;">
-                        <li>Upload clear, well-lit images of affected plant areas</li>
+                        <li>Use webcam for real-time diagnosis or upload clear, well-lit images</li>
+                        <li>When using webcam: Allow camera access, then click the camera icon to capture</li>
                         <li>Include both close-ups and full plant views when possible</li>
                         <li>Use Enhanced Analysis for detailed treatment recommendations</li>
                         <li>Explore the Knowledge Graph for related agricultural insights</li>
@@ -1078,4 +1175,18 @@ if __name__ == "__main__":
     demo.queue(max_size=20)
     server_name = os.getenv("GRADIO_SERVER_NAME", "0.0.0.0")
     server_port = int(os.getenv("GRADIO_SERVER_PORT", "7861"))
-    demo.launch(server_name=server_name, server_port=server_port, share=False)
+    
+    # Print launch information
+    print("\n" + "="*60)
+    print("🌿 Plant Diagnostic System v2.0 - Starting...")
+    print("="*60)
+    print(f"📍 Server: {server_name}:{server_port}")
+    print(f"🖥️  GPU: cuda:{args.gpu_id}" if torch.cuda.is_available() else "💻 CPU Mode")
+    print(f"🔬 Models: ResNet + MiniGPT-v2")
+    if args.share:
+        print("🌐 Public Share: ENABLED (generating public URL...)")
+    else:
+        print("🏠 Local Only: Use --share for public link")
+    print("="*60 + "\n")
+    
+    demo.launch(server_name=server_name, server_port=server_port, share=args.share)

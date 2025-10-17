@@ -142,8 +142,8 @@ def fetch_serp_context(query):
 def create_knowledge_graph():
     """Create knowledge graph visualization from FAOSTAT data."""
     try:
-        nodes_path = 'kg_nodes_faostat.csv'
-        relationships_path = 'kg_relationships_faostat.csv'
+        nodes_path = 'knowledge_graph/kg_nodes_faostat.csv'
+        relationships_path = 'knowledge_graph/kg_relationships_faostat.csv'
 
         if not os.path.exists(nodes_path):
             raise FileNotFoundError(f"Nodes file not found: {nodes_path}")

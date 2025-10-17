@@ -237,7 +237,7 @@ Image Upload → ResNet Classification → Label Mapping → MiniGPT Explanation
 
 ## 📊 Knowledge Graph
 
-If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the repo root, the **Knowledge Graph** tab renders an interactive Plotly graph. Use **Reload Full Graph** or **Show Crop Neighborhood** to explore.
+If `knowledge_graph/kg_nodes_faostat.csv` and `knowledge_graph/kg_relationships_faostat.csv` are present, the **Knowledge Graph** tab renders an interactive Plotly graph. Use **Reload Full Graph** or **Show Crop Neighborhood** to explore.
 
 ---
 
@@ -304,8 +304,9 @@ Plant Diagnostic System/
 │   └── minigptv2_strawberry_diagnostic/
 ├── examples/                          # Demo example images
 ├── examples_v2/                       # Additional example images
-├── kg_nodes_faostat.csv               # Knowledge graph nodes
-├── kg_relationships_faostat.csv       # Knowledge graph edges
+├── knowledge_graph/                   # FAOSTAT knowledge graph data
+│   ├── kg_nodes_faostat.csv          # Knowledge graph nodes
+│   └── kg_relationships_faostat.csv  # Knowledge graph edges
 ├── dark_theme.css                     # UI styling
 └── environment.yml                    # Conda environment file
 ```
