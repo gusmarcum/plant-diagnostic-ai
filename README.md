@@ -9,9 +9,6 @@ An advanced **plant diagnostic system** that combines a **ResNet-50** classifier
 ### Main Demo (demo_v5)
 [![Demo v5 - Plant Diagnostic System](https://img.youtube.com/vi/eduSbkigjLY/0.jpg)](https://youtu.be/eduSbkigjLY?si=24JHh-qNNbvROLdD)
 
-### Plant Diagnostic Project Overview
-[![Plant Diagnostic Project Demo](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://youtu.be/-QEf8KkALK4?si=mVatePAGOcpFYOXw)
-
 ### Webcam and Unknown Scenario Demo
 [![Webcam and Unknown Scenario Demo](https://img.youtube.com/vi/PXN6_6oj7_M/0.jpg)](https://youtu.be/PXN6_6oj7_M)
 
@@ -266,7 +263,9 @@ If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the 
 ## Training Pipeline
 ![Training Pipeline – Mermaid export](https://github.com/user-attachments/assets/fc1dfc01-c445-4c3f-9398-709c4845fcfc)
 
-## Project Demo Video
+## Project Demo Videos
+
+### Plant Diagnostic Project Overview
 [![Plant Diagnostic Project Demo](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://youtu.be/-QEf8KkALK4?si=mVatePAGOcpFYOXw)
 
 ---
