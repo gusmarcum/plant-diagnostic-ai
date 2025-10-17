@@ -6,7 +6,7 @@ datasets:
       annotations:
         train:
           storage:
-              - /data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_train.json
-              - /data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_val.json
+              - /data/AGAI/MiniGPT-4/dataset/coco/preprocessed/vqa_train.json
+              - /data/AGAI/MiniGPT-4/dataset/coco/preprocessed/vqa_val.json
       images:
-          storage: /data/kiriti/MiniGPT-4/dataset/coco/images
+          storage: /data/AGAI/MiniGPT-4/dataset/coco/images

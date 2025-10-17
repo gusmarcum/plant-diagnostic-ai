@@ -5,7 +5,7 @@ model:
   end_sym: "</s>"
   low_resource: True
   prompt_template: '[INST] {} [/INST]'
-  ckpt: "/data/kiriti/MiniGPT-4/checkpoints/checkpoint_stage2.pth"
+  ckpt: "/data/AGAI/MiniGPT-4/checkpoints/checkpoint_stage2.pth"
   lora_r: 64
   lora_alpha: 16
 
@@ -23,5 +23,5 @@ run:
   task: image_text_pretrain
 
 env:
-  cache_root: "/data/kiriti/MiniGPT-4/cache"
+  cache_root: "/data/AGAI/MiniGPT-4/cache"
 

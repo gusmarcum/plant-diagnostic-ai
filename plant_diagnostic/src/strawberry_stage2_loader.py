@@ -1,4 +1,4 @@
-# /data/kiriti/MiniGPT-4/plant_diagnostic/scripts/strawberry_stage2_loader.py
+# /data/AGAI/MiniGPT-4/plant_diagnostic/scripts/strawberry_stage2_loader.py
 import json
 import collections
 from pathlib import Path

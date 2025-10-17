@@ -9,9 +9,9 @@ model:
   end_sym: ""
   low_resource: true
   prompt_template: 'Human: {} Assistant: '
-  ckpt: /data/kiriti/MiniGPT-4/output/minigptv2_finetune/new/checkpoint_9.pth 
-  # was: /data/kiriti/MiniGPT-4/output/minigpt4_stage2_finetune/20250907072/checkpoint_best.pth
-  llama_model: /data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hfs
+  ckpt: /data/AGAI/MiniGPT-4/output/minigptv2_finetune/new/checkpoint_9.pth 
+  # was: /data/AGAI/MiniGPT-4/output/minigpt4_stage2_finetune/20250907072/checkpoint_best.pth
+  llama_model: /data/AGAI/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf
 
   # LoRA / projector toggles (must live under `model:` when this file is used as eval YAML)
   use_lora: true

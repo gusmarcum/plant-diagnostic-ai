@@ -10,14 +10,14 @@ datasets:
       annotations:
         train:
           storage:
-            - /data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_train_fixed.json
-            - /data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_train.json
+            - /data/AGAI/MiniGPT-4/dataset/coco/preprocessed/vqa_train_fixed.json
+            - /data/AGAI/MiniGPT-4/dataset/coco/preprocessed/vqa_train.json
         val:
           storage:
-            - /data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_val_fixed.json
-            - /data/kiriti/MiniGPT-4/dataset/coco/preprocessed/vqa_val.json
+            - /data/AGAI/MiniGPT-4/dataset/coco/preprocessed/vqa_val_fixed.json
+            - /data/AGAI/MiniGPT-4/dataset/coco/preprocessed/vqa_val.json
       images:
-        train: /data/kiriti/MiniGPT-4/dataset/coco/images/train2014
-        val: /data/kiriti/MiniGPT-4/dataset/coco/images/val2014
+        train: /data/AGAI/MiniGPT-4/dataset/coco/images/train2014
+        val: /data/AGAI/MiniGPT-4/dataset/coco/images/val2014
 
 

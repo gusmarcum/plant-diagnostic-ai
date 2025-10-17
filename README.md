@@ -4,6 +4,17 @@ An advanced **plant diagnostic system** that combines a **ResNet-50** classifier
 
 > Research prototype. Not medical/agronomic advice.
 
+## 🎥 Demonstration Videos
+
+### Main Demo (demo_v5)
+[![Demo v5 - Plant Diagnostic System](https://img.youtube.com/vi/eduSbkigjLY/0.jpg)](https://youtu.be/eduSbkigjLY?si=24JHh-qNNbvROLdD)
+
+### Plant Diagnostic Project Overview
+[![Plant Diagnostic Project Demo](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://youtu.be/-QEf8KkALK4?si=mVatePAGOcpFYOXw)
+
+### Webcam and Unknown Scenario Demo
+[![Webcam and Unknown Scenario Demo](https://img.youtube.com/vi/PXN6_6oj7_M/0.jpg)](https://youtu.be/PXN6_6oj7_M)
+
 ---
 
 ## ✨ Features
@@ -13,9 +24,14 @@ An advanced **plant diagnostic system** that combines a **ResNet-50** classifier
 - **Ground Truth Approach**: ResNet diagnosis is treated as absolute truth, MiniGPT explains the evidence
 - **Confidence Scoring**: Visual confidence indicators (🟢 ≥90%, 🟡 70-90%, 🔴 <70%)
 - **Doctor-Grade Reports**: Structured medical reports with diagnosis, visible cues, and recommendations
-- **Interactive Knowledge Graph**: FAOSTAT agricultural data visualization
-- **Modern Web Interface**: Dark theme with responsive Gradio UI
+- **Interactive Knowledge Graph**: FAOSTAT agricultural data visualization with crop-specific insights
+- **Modern Web Interface**: Dark theme with responsive Gradio UI (v2.0)
 - **Real-time Processing**: Optimized for fast inference on single GPU
+- **Convenient Launch Script**: Easy-to-use `launch_demo_v5.sh` with multiple options
+- **Public Sharing**: Optional public share links for remote access
+- **Webcam Support**: Real-time analysis capabilities (see demo videos)
+- **Enhanced Analysis**: Advanced features with web search integration (optional SERPAPI)
+- **Multiple Demo Versions**: demo.py (original), demo_v4.py, demo_v5.py (latest)
 
 ---
 
@@ -30,10 +46,28 @@ An advanced **plant diagnostic system** that combines a **ResNet-50** classifier
   - ResNet-50 classifier: `plant_diagnostic/models/resnet_straw_final.pth`
 - **8GB+ VRAM** for smooth operation
 - (Optional) **SERPAPI** key for enhanced web search features
+- **Bash shell** (for launch script on Unix-like systems)
 
 ---
 
 ## ⚙️ Setup
+
+### **Option 1: Conda Environment (Recommended)**
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/plant-diagnostic-system.git
+cd plant-diagnostic-system
+
+# Create and activate conda environment
+conda env create -f environment.yml
+conda activate plant-diagnostic
+
+# Install PyTorch with CUDA support
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+
+### **Option 2: Manual Installation**
 
 ```bash
 # Clone the repository
@@ -94,15 +128,38 @@ run:
 
 ### **Demo/Inference Mode**
 
-Launch the Plant Diagnostic System:
+Launch the Plant Diagnostic System using the convenient launch script:
 
+```bash
+# Basic usage (local only)
+./launch_demo_v5.sh
+
+# With public share link (accessible from anywhere)
+./launch_demo_v5.sh --share
+
+# With ResNet anchor for faster first inference
+./launch_demo_v5.sh --resnet-anchor
+
+# Full features with public share
+./launch_demo_v5.sh --share --resnet-anchor
+
+# Use specific GPU
+./launch_demo_v5.sh --gpu 1 --share
+```
+
+**Alternative: Direct Python execution**
 ```bash
 CUDA_VISIBLE_DEVICES=0 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python demo_v5.py --cfg-path eval_configs/minigptv2_eval.yaml --resnet-anchor
 ```
 
-**Parameters:**
-- `--cfg-path`: Points to the evaluation configuration
-- `--resnet-anchor`: Preloads ResNet for faster first inference
+**Launch Script Parameters:**
+- `--share`: Creates public share link (accessible from anywhere)
+- `--gpu ID`: GPU device ID (default: 0)
+- `--cfg-path PATH`: Path to config file (default: eval_configs/minigptv2_eval.yaml)
+- `--resnet-anchor`: Enable ResNet anchor for diagnosis
+- `--help`: Show help message
+
+**Environment Variables:**
 - `CUDA_VISIBLE_DEVICES=0`: Uses GPU 0 (adjust as needed)
 - `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`: Optimizes CUDA memory allocation
 
@@ -130,7 +187,9 @@ python -m torch.distributed.run --nproc_per_node=2 train.py \
 
 ### **Image Analysis Workflow**
 
-1. **Upload Image**: Click the image upload area and select a clear photo of your strawberry plant
+1. **Capture or Upload Image**: 
+   - **Webcam**: Click the camera icon in the image area → Allow camera access → Click again to capture
+   - **Upload**: Click the image upload area and select a clear photo of your strawberry plant
 2. **Adjust Settings**: Use the temperature slider (0.01-0.5) to control response creativity
 3. **Run Analysis**: Click "📤 Send" in the Standard Analysis panel or "🔎 Analyze" in Enhanced Analysis
 
@@ -150,10 +209,11 @@ The system provides structured medical reports with:
 ```
 
 **🎯 Best Practices:**
-- Upload clear, well-lit images of affected plant areas
-- Include both close-ups and full plant views when possible
-- Use temperature 0.1-0.3 for balanced creativity and accuracy
-- Check the Knowledge Graph tab for related agricultural insights
+- **Webcam Usage**: Allow camera access, then click the camera icon to capture real-time images
+- **Image Quality**: Upload clear, well-lit images of affected plant areas
+- **Multiple Views**: Include both close-ups and full plant views when possible
+- **Temperature Settings**: Use temperature 0.1-0.3 for balanced creativity and accuracy
+- **Additional Features**: Check the Knowledge Graph tab for related agricultural insights
 
 ---
 
@@ -207,7 +267,7 @@ If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the 
 ![Training Pipeline – Mermaid export](https://github.com/user-attachments/assets/fc1dfc01-c445-4c3f-9398-709c4845fcfc)
 
 ## Project Demo Video
-[![Watch the demo](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://www.youtube.com/watch?v=-QEf8KkALK4)
+[![Plant Diagnostic Project Demo](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://youtu.be/-QEf8KkALK4?si=mVatePAGOcpFYOXw)
 
 ---
 
@@ -215,7 +275,10 @@ If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the 
 
 ```
 Plant Diagnostic System/
-├── demo_v5.py                           # Main Gradio web interface
+├── demo_v5.py                           # Main Gradio web interface (v2.0)
+├── demo.py                             # Original MiniGPT-4 demo
+├── demo_v4.py                          # Previous version demo
+├── launch_demo_v5.sh                   # Convenient launch script
 ├── resnet_classifier.py                 # ResNet-50 model and inference
 ├── train.py                            # Training script
 ├── eval_only.py                        # Non-interactive evaluation
@@ -226,21 +289,29 @@ Plant Diagnostic System/
 │   ├── runners/                        # Training runners
 │   └── datasets/                       # Dataset builders
 ├── eval_configs/                       # Inference configurations
-│   └── minigptv2_eval.yaml
+│   ├── minigptv2_eval.yaml            # Main evaluation config
+│   ├── minigpt4_eval.yaml             # Original MiniGPT-4 config
+│   └── minigptv2_benchmark_evaluation.yaml
 ├── train_configs/                      # Training configurations
-│   └── minigptv2_strawberry_diagnostic.yaml
+│   ├── minigptv2_strawberry_diagnostic.yaml
+│   ├── minigpt4_stage1_pretrain.yaml
+│   └── minigpt4_stage2_finetune.yaml
 ├── plant_diagnostic/                   # ResNet training and data
 │   ├── models/
 │   │   └── resnet_straw_final.pth     # 7-class ResNet checkpoint
-│   ├── data/                          # Training images
-│   └── datasets/                      # Dataset annotations
+│   ├── data/                          # Training images (3,720+ files)
+│   ├── datasets/                      # Dataset annotations
+│   └── scripts/                       # Training and utility scripts
 ├── llama_weights/                      # LLaMA-2-7B weights
 │   └── Llama-2-7b-chat-hf/
 ├── output/                            # Training outputs
 │   └── minigptv2_strawberry_diagnostic/
+├── examples/                          # Demo example images
+├── examples_v2/                       # Additional example images
 ├── kg_nodes_faostat.csv               # Knowledge graph nodes
 ├── kg_relationships_faostat.csv       # Knowledge graph edges
-└── dark_theme.css                     # UI styling
+├── dark_theme.css                     # UI styling
+└── environment.yml                    # Conda environment file
 ```
 
 ---
@@ -290,7 +361,7 @@ Please respect upstream licenses and dataset terms of use.
 ```bibtex
 @software{plant_diagnostic_system,
   title  = {Plant Diagnostic System: AI-Powered Strawberry Disease Detection},
-  author = {William Starks, Kiriti Vundavilli},
+  author = {William Starks, Gus Marcum, Kiriti Vundavilli},
   year   = {2025},
   note   = {GitHub repository: Advanced plant health analysis with ResNet + MiniGPT-v2}
 }

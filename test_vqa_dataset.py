@@ -12,10 +12,10 @@ from minigpt4.processors import build_processor
 def test_vqa_dataset():
     try:
         # Dataset paths
-        vis_root = "/data/kiriti/MiniGPT-4/dataset/coco/images/train2014"
+        vis_root = "/data/AGAI/MiniGPT-4/dataset/coco/images/train2014"
         ann_paths = [
-            "/data/kiriti/MiniGPT-4/dataset/coco/annotations/v2_OpenEnded_mscoco_train2014_questions.json",
-            "/data/kiriti/MiniGPT-4/dataset/coco/annotations/v2_mscoco_train2014_annotations.json"
+            "/data/AGAI/MiniGPT-4/dataset/coco/annotations/v2_OpenEnded_mscoco_train2014_questions.json",
+            "/data/AGAI/MiniGPT-4/dataset/coco/annotations/v2_mscoco_train2014_annotations.json"
         ]
         
         # Create simple processors

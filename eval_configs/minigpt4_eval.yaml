@@ -6,8 +6,8 @@ model:
   end_sym: "###"
   low_resource: True
   prompt_template: '###Human: {} ###Assistant: '
-  ckpt: /data/kiriti/MiniGPT-4/checkpoints/checkpoint_stage2.pth
-  llama_model: /data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf
+  ckpt: /data/AGAI/MiniGPT-4/checkpoints/checkpoint_stage2.pth
+  llama_model: /data/AGAI/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf
 
 preprocess:
   vis_processor:

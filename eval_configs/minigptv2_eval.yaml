@@ -7,11 +7,11 @@
     # Align prompt style with training for richer responses
     prompt_template: 'Human: {} Assistant: '
     # Use the latest trained checkpoint
-    ckpt: "/data/kiriti/MiniGPT-4/output/minigptv2_strawberry_diagnostic/20251004134/checkpoint_best.pth"
+    ckpt: "/data/AGAI/MiniGPT-4/output/minigptv2_strawberry_diagnostic/20251004134/checkpoint_best.pth"
     lora_r: 16
     lora_alpha: 32
     lora_dropout: 0.05
-    llama_model: "/data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"
+    llama_model: "/data/AGAI/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"
 
   datasets:
     strawberry_diagnostic:
@@ -24,9 +24,9 @@
           name: "blip_caption"
       build_info:
         annotations:
-          train: "/data/kiriti/MiniGPT-4/plant_diagnostic/datasets/stage2_train_7class_fixed.json"
+          train: "/data/AGAI/MiniGPT-4/plant_diagnostic/datasets/stage2_train_7class_fixed.json"
         images:
-          train: "/data/kiriti/MiniGPT-4/plant_diagnostic/data/train_aug"
+          train: "/data/AGAI/MiniGPT-4/plant_diagnostic/data/train_aug"
 
   run:
     task: image_text_pretrain
@@ -40,4 +40,4 @@
     auto_val_split_ratio: 0.1
 
   env:
-    cache_root: "/data/kiriti/MiniGPT-4/cache"
+    cache_root: "/data/AGAI/MiniGPT-4/cache"

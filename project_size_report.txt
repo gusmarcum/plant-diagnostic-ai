@@ -1,5 +1,5 @@
 ===== PROJECT SIZE REPORT =====
-Project path: /data/kiriti/MiniGPT-4
+Project path: /data/AGAI/MiniGPT-4
 
 == Top-level directory sizes (max depth 2) ==
 126G	.

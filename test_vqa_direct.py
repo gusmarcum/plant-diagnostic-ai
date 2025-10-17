@@ -37,9 +37,9 @@ def test_vqa_dataset_directly():
     registry.register_path("library_root", repo_root)
     
     # Paths
-    vis_root = "/data/kiriti/MiniGPT-4/dataset/coco/images/train2014"
-    question_path = "/data/kiriti/MiniGPT-4/dataset/coco/annotations/v2_OpenEnded_mscoco_train2014_questions.json"
-    answer_path = "/data/kiriti/MiniGPT-4/dataset/coco/annotations/v2_mscoco_train2014_annotations.json"
+    vis_root = "/data/AGAI/MiniGPT-4/dataset/coco/images/train2014"
+    question_path = "/data/AGAI/MiniGPT-4/dataset/coco/annotations/v2_OpenEnded_mscoco_train2014_questions.json"
+    answer_path = "/data/AGAI/MiniGPT-4/dataset/coco/annotations/v2_mscoco_train2014_annotations.json"
     
     # Create simple processors
     vis_processor = Blip2ImageEvalProcessor(image_size=448)

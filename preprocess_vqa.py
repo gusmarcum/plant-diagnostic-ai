@@ -31,8 +31,8 @@ def preprocess_vqa(questions_file, annotations_file, output_file):
     print(f"Saved preprocessed VQA data to {output_file}")
 
 # Define paths
-datasets_dir = "/data/kiriti/MiniGPT-4/dataset/coco/annotations"
-output_dir = "/data/kiriti/MiniGPT-4/dataset/coco/preprocessed"
+datasets_dir = "/data/AGAI/MiniGPT-4/dataset/coco/annotations"
+output_dir = "/data/AGAI/MiniGPT-4/dataset/coco/preprocessed"
 
 os.makedirs(output_dir, exist_ok=True)
 

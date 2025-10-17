@@ -10,7 +10,7 @@ freeze_vit: True
 freeze_qformer: True
 
 # LLaMA configuration
-llama_model: "/data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"
+llama_model: "/data/AGAI/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"
 
 # Generation
 prompt_template: '[INST] {} [/INST]'

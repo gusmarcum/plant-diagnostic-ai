@@ -4,12 +4,12 @@ datasets:
     build_info:
       annotations:
         train:
-          storage: "/data/kiriti/MiniGPT-4/plant_diagnostic/datasets/stage2_train_7class_fixed.json"
+          storage: "/data/AGAI/MiniGPT-4/plant_diagnostic/datasets/stage2_train_7class_fixed.json"
         val:
-          storage: "/data/kiriti/MiniGPT-4/plant_diagnostic/jsondatasets/strawberry_stage2_val.json"
+          storage: "/data/AGAI/MiniGPT-4/plant_diagnostic/jsondatasets/strawberry_stage2_val.json"
       images:
-        train: "/data/kiriti/MiniGPT-4/plant_diagnostic/data/train_aug"
-        val:   "/data/kiriti/MiniGPT-4/plant_diagnostic/data/holdout"
+        train: "/data/AGAI/MiniGPT-4/plant_diagnostic/data/train_aug"
+        val:   "/data/AGAI/MiniGPT-4/plant_diagnostic/data/holdout"
     vis_processor:
       train:
         name: "blip2_image_train"

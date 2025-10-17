@@ -4,7 +4,7 @@ from PIL import Image
 
 def test_vqa_dataset():
     # Define paths
-    base_path = "/data/kiriti/MiniGPT-4/dataset/coco"
+    base_path = "/data/AGAI/MiniGPT-4/dataset/coco"
     image_path = os.path.join(base_path, "images/train2014")
     question_path = os.path.join(base_path, "annotations/v2_OpenEnded_mscoco_train2014_questions.json")
     answer_path = os.path.join(base_path, "annotations/v2_mscoco_train2014_annotations.json")

@@ -13,14 +13,14 @@ Highlights
 - Sensible defaults for your current counts (drought, overwatered, root_rot are weak)
 
 Usage (most common):
-python /data/kiriti/MiniGPT-4/plant_diagnostic/tools/augment_dataset.py \
-  --src  /data/kiriti/MiniGPT-4/plant_diagnostic/data/train \
-  --dst  /data/kiriti/MiniGPT-4/plant_diagnostic/data/train_aug \
+python /data/AGAI/MiniGPT-4/plant_diagnostic/tools/augment_dataset.py \
+  --src  /data/AGAI/MiniGPT-4/plant_diagnostic/data/train \
+  --dst  /data/AGAI/MiniGPT-4/plant_diagnostic/data/train_aug \
   --classes drought overwatered root_rot \
   --target-per-class 300 \
   --max-per-image 4 \
   --img-size 256 \
-  --report /data/kiriti/MiniGPT-4/plant_diagnostic/data/aug_report.json
+  --report /data/AGAI/MiniGPT-4/plant_diagnostic/data/aug_report.json
 
 
 If you prefer augmenting **in-place**, set --dst equal to --src (it will write

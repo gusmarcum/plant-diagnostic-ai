@@ -4,8 +4,8 @@ model:
   max_txt_len: 1024
   image_size: 448
   end_sym: "</s>"
-  llama_model: "/data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"  # Path to LLaMA-2 weights
-  ckpt: "/data/kiriti/MiniGPT-4/checkpoints/checkpoint_stage2.pth"       # Pretrained checkpoint
+  llama_model: "/data/AGAI/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"  # Path to LLaMA-2 weights
+  ckpt: "/data/AGAI/MiniGPT-4/checkpoints/checkpoint_stage2.pth"       # Pretrained checkpoint
   use_grad_checkpoint: True
   chat_template: True
   lora_r: 64
@@ -60,7 +60,7 @@ run:
   warmup_steps: 1000
   iters_per_epoch: 1000
   seed: 42
-  output_dir: "/data/kiriti/MiniGPT-4/output"  # Update with your output directory
+  output_dir: "/data/AGAI/MiniGPT-4/output"  # Update with your output directory
   amp: True
   resume_ckpt_path: null
   evaluate: False 

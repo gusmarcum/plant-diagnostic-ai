@@ -1,5 +1,5 @@
 coco_vqa:
-  image_path: "/data/kiriti/MiniGPT-4/datasets/coco/images"
-  question_path: "/data/kiriti/MiniGPT-4/datasets/coco/annotations/v2_OpenEnded_mscoco_train2014_questions.json"
-  answer_path: "/data/kiriti/MiniGPT-4/datasets/coco/annotations/v2_mscoco_train2014_annotations.json"
+  image_path: "/data/AGAI/MiniGPT-4/datasets/coco/images"
+  question_path: "/data/AGAI/MiniGPT-4/datasets/coco/annotations/v2_OpenEnded_mscoco_train2014_questions.json"
+  answer_path: "/data/AGAI/MiniGPT-4/datasets/coco/annotations/v2_mscoco_train2014_annotations.json"
   split: "train"

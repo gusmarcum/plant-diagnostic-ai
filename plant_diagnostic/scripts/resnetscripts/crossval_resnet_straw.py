@@ -14,16 +14,16 @@ Features
 
 Example launch
 -------------
-python /data/kiriti/MiniGPT-4/plant_diagnostic/scripts/resnetscripts/train_resnet_kfold.py \
-  --data_root /data/kiriti/MiniGPT-4/plant_diagnostic/data/train_aug \
-  --out_dir   /data/kiriti/MiniGPT-4/plant_diagnostic/models/kfold_resnet \
+python /data/AGAI/MiniGPT-4/plant_diagnostic/scripts/resnetscripts/train_resnet_kfold.py \
+  --data_root /data/AGAI/MiniGPT-4/plant_diagnostic/data/train_aug \
+  --out_dir   /data/AGAI/MiniGPT-4/plant_diagnostic/models/kfold_resnet \
   --k 5 \
   --epochs_head 3 --epochs_full 18 \
   --batch_size 32 --img_size 256 \
   --balance weights \
   --boost_classes "frost:1.3,white_mold:1.1,gray_mold:0.95" \
   --label_smoothing 0.05 --mixup 0.05 --ema 0.998 \
-  --resume /data/kiriti/MiniGPT-4/plant_diagnostic/models/resnet_straw7.pth \
+  --resume /data/AGAI/MiniGPT-4/plant_diagnostic/models/resnet_straw7.pth \
   --calibrate
 
 Notes

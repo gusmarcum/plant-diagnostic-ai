@@ -48,7 +48,7 @@ def get_cache_path(rel_path):
 
 
 def get_abs_path(rel_path):
-    library_root = registry.get_path("library_root") or "/data/kiriti/MiniGPT-4/"
+    library_root = registry.get_path("library_root") or "/data/AGAI/MiniGPT-4/"
     return os.path.join(library_root, rel_path)
 
 

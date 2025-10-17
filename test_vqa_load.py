@@ -12,8 +12,8 @@ sys.path.insert(0, str(repo_root))
 
 def test_vqa_files():
     # Dataset paths
-    question_path = "/data/kiriti/MiniGPT-4/dataset/coco/annotations/v2_OpenEnded_mscoco_train2014_questions.json"
-    answer_path = "/data/kiriti/MiniGPT-4/dataset/coco/annotations/v2_mscoco_train2014_annotations.json"
+    question_path = "/data/AGAI/MiniGPT-4/dataset/coco/annotations/v2_OpenEnded_mscoco_train2014_questions.json"
+    answer_path = "/data/AGAI/MiniGPT-4/dataset/coco/annotations/v2_mscoco_train2014_annotations.json"
     
     print("\nTesting question file...")
     with open(question_path, 'r') as f:
@@ -33,7 +33,7 @@ def test_vqa_files():
 
 def create_processed_annotation(questions, answers):
     """Create a processed annotation file that matches the expected format"""
-    processed_path = "/data/kiriti/MiniGPT-4/dataset/coco/preprocessed"
+    processed_path = "/data/AGAI/MiniGPT-4/dataset/coco/preprocessed"
     os.makedirs(processed_path, exist_ok=True)
     
     # Create a mapping of question_id to answers
