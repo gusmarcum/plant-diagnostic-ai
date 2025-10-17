@@ -28,7 +28,6 @@ An advanced **plant diagnostic system** that combines a **ResNet-50** classifier
 - **Public Sharing**: Optional public share links for remote access
 - **Webcam Support**: Real-time analysis capabilities (see demo videos)
 - **Enhanced Analysis**: Advanced features with web search integration (optional SERPAPI)
-- **Multiple Demo Versions**: demo.py (original), demo_v4.py, demo_v5.py (latest)
 
 ---
 
@@ -182,7 +181,7 @@ python -m torch.distributed.run --nproc_per_node=2 train.py \
 
 ## 🖥️ Using the Plant Diagnostic System
 
-### **Image Analysis Workflow**
+### **Image and Webcam Analysis Workflow**
 
 1. **Capture or Upload Image**: 
    - **Webcam**: Click the camera icon in the image area → Allow camera access → Click again to capture
