@@ -1,15 +1,25 @@
-model:
-  arch: minigpt4
-  model_type: pretrain_vicuna0
+model:  
+  arch: minigpt_v2
+  model_type: pretrain
+  model_config: configs/models/minigpt_v2.yaml
   max_txt_len: 160
   end_sym: "###"
   low_resource: True
   prompt_template: '###Human: {} ###Assistant: '
-  ckpt: 'please set this value to the path of pretrained checkpoint'
+  ckpt: /data/kiriti/MiniGPT-4/checkpoints/checkpoint_stage2.pth
+  llama_model: /data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf
 
+preprocess:
+  vis_processor:
+    train:
+      name: blip2_image_eval
+      image_size: 448
+  text_processor:
+    train:
+      name: blip_caption
 
 datasets:
-  cc_sbu_align:
+  coco_vqa:
     vis_processor:
       train:
         name: "blip2_image_eval"
@@ -17,6 +27,7 @@ datasets:
     text_processor:
       train:
         name: "blip_caption"
+
 
 run:
   task: image_text_pretrain

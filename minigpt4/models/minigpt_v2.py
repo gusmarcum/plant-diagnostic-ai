@@ -70,23 +70,44 @@ class MiniGPTv2(MiniGPTBase):
         self.chat_template = chat_template
 
         if use_grad_checkpoint_llm:
-            self.llama_model.gradient_checkpointing_enable()
+            self.llama_model.gradient_checkpointing_enable(use_reentrant=False)
 
     def encode_img(self, image):
+        """
+        Encode an image to LLaMA token embeddings.
+        Ensures dtype matches the projector to avoid Half/Float matmul errors.
+        """
         device = image.device
 
-        if len(image.shape) > 4:
-            image = image.reshape(-1, *image.shape[-3:])
+        if image.dim() > 4:
+            image = image.view(-1, *image.shape[-3:])
 
         with self.maybe_autocast():
-            image_embeds = self.ln_vision(self.visual_encoder(image)).to(device)
+            # Vision encoder + LN (often fp16)
+            image_embeds = self.ln_vision(self.visual_encoder(image))
+            if image_embeds.device != device:
+                image_embeds = image_embeds.to(device)
+
+            # Drop CLS token and reshape (match existing MiniGPT logic)
             image_embeds = image_embeds[:, 1:, :]
             bs, pn, hs = image_embeds.shape
-            image_embeds = image_embeds.view(bs, int(pn / 4), int(hs * 4))
+            image_embeds = image_embeds.view(bs, pn // 4, hs * 4)
 
+            # --- Fix dtype mismatch: cast to projector's weight dtype ---
+            proj_dtype = self.llama_proj.weight.dtype
+            if image_embeds.dtype != proj_dtype:
+                image_embeds = image_embeds.to(proj_dtype)
+
+            # Project to LLaMA hidden size
             inputs_llama = self.llama_proj(image_embeds)
-            atts_llama = torch.ones(inputs_llama.size()[:-1], dtype=torch.long).to(image.device)
+
+            # Attention mask for the projected image tokens
+            atts_llama = torch.ones(
+                inputs_llama.shape[:-1], dtype=torch.long, device=device
+            )
+
         return inputs_llama, atts_llama
+
 
     @classmethod
     def from_config(cls, cfg):

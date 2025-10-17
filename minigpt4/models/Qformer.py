@@ -1,3 +1,5 @@
+import os
+local_rank = int(os.environ.get("LOCAL_RANK","0"))
 """
  * Copyright (c) 2023, salesforce.com, inc.
  * All rights reserved.
@@ -539,7 +541,7 @@ class BertEncoder(nn.Module):
                     return custom_forward
 
                 layer_outputs = torch.utils.checkpoint.checkpoint(
-                    create_custom_forward(layer_module),
+                    create_custom_forward(layer_module, use_reentrant=False),
                     hidden_states,
                     attention_mask,
                     layer_head_mask,

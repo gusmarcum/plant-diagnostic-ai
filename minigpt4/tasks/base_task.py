@@ -84,11 +84,11 @@ class BaseTask:
 
             # Initialize scaler if needed
             if use_mixed_precision and not hasattr(self, 'scaler'):
-                self.scaler = torch.cuda.amp.GradScaler()
+                self.scaler = torch.amp.GradScaler("cuda")
                 logging.info("Initialized GradScaler for mixed precision training")
 
             # Forward pass with type validation
-            with torch.cuda.amp.autocast(enabled=use_mixed_precision):
+            with torch.amp.autocast("cuda", enabled=use_mixed_precision):
                 output = model(samples)
 
                 if not isinstance(output, dict) or "loss" not in output:
@@ -267,7 +267,7 @@ class BaseTask:
                     lr_scheduler.step(cur_epoch=inner_epoch, cur_step=i)
 
                     # Forward pass and loss computation
-                    with torch.cuda.amp.autocast(enabled=use_amp):
+                    with torch.amp.autocast("cuda", enabled=use_amp):
                         loss = self.train_step(
                             model=model,
                             samples=samples,
@@ -323,6 +323,11 @@ class BaseTask:
                             if max_grad_norm > 0:
                                 log_dict["grad_norm"] = grad_norm
                             wandb.log(log_dict)
+
+                        # Console logging every 50 steps
+                        if (i + 1) % 50 == 0:
+                            lrs = [pg["lr"] for pg in optimizer.param_groups]
+                            logging.info(f"step={(i+1)} grad_norm={grad_norm:.4f} lr={','.join(f'{x:.6e}' for x in lrs)}")
 
                     # Update metrics
                     metric_logger.update(loss=loss.detach().item())

@@ -1,3 +1,5 @@
+import os
+local_rank = int(os.environ.get("LOCAL_RANK","0"))
 """
  Copyright (c) 2022, salesforce.com, inc.
  All rights reserved.

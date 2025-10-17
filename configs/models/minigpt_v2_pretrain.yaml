@@ -1,0 +1,24 @@
+arch: minigpt_v2
+model_type: pretrain_v2
+
+# Image processor
+image_size: 448
+drop_path_rate: 0
+use_grad_checkpoint: False
+vit_precision: "fp16"
+freeze_vit: True
+freeze_qformer: True
+
+# LLaMA configuration
+llama_model: "/data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf"
+
+# Generation
+prompt_template: '[INST] {} [/INST]'
+max_txt_len: 1024
+end_sym: "</s>"
+low_resource: False
+
+# LoRA
+lora_r: 64
+lora_alpha: 16
+lora_dropout: 0.1

@@ -1,0 +1,364 @@
+/* Plant Diagnostic System - Dark Theme CSS */
+/* Version 2.0 - Modern Tech Theme with Emoji Support */
+
+/* ===== Global Dark Theme ===== */
+.gradio-container {
+    background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+    /* Include emoji fonts in the font stack */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+    color: #e0e0e0;
+}
+
+/* Force dark backgrounds only - let text color be inherited naturally */
+.dark, div[class*="gr-"], .gr-box, .gr-panel, .gr-compact, .gr-form, .container {
+    background: rgba(20, 20, 35, 0.7) !important;
+}
+
+/* ===== Typography with Emoji Support ===== */
+/* Apply gradient only to headers without emojis */
+h1:not(:has(span)), h2:not(:has(span)), h3:not(:has(span)) {
+    background: linear-gradient(90deg, #00d4ff, #b794f4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+/* Headers with emojis should use normal text color */
+h1:has(span), h2:has(span), h3:has(span), h4:has(span) {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* Text colors - removed !important to allow emoji colors through */
+p, div, label {
+    color: #e0e0e0;
+}
+
+/* Don't force color on span elements (they might contain emojis) */
+span {
+    color: inherit;
+}
+
+.gr-markdown {
+    color: #e0e0e0;
+}
+
+.gr-markdown p, .gr-markdown ul, .gr-markdown ol, .gr-markdown li {
+    color: #d0d0d0;
+}
+
+.gr-markdown h1, .gr-markdown h2, .gr-markdown h3, .gr-markdown h4 {
+    color: #ffffff;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+/* ===== Cards and Containers ===== */
+.gr-box, .gr-group {
+    background: rgba(25, 25, 40, 0.8) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== Emoji Preservation ===== */
+/* Ensure emojis display with natural colors */
+.gr-button span,
+.gr-markdown span,
+.gr-box h3 span,
+.gr-box h4 span,
+.gr-group span {
+    /* Don't override inline styles that may contain emojis */
+    color: inherit;
+}
+
+/* Target specific emoji-containing elements */
+span[style*="font"],
+span[style*="emoji"],
+*[class*="emoji"] {
+    color: initial !important;
+    -webkit-text-fill-color: initial !important;
+}
+
+/* Fix for button text to show emojis properly */
+.gr-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    color: white;
+    /* Don't use webkit-text-fill-color here */
+}
+
+/* Section headers that contain emojis - Don't apply text gradients */
+.gr-box > h3:first-child,
+.gr-box > h4:first-child,
+.gr-group > h3:first-child,
+.gr-group > h4:first-child,
+.gr-box .gr-markdown h3,
+.gr-box .gr-markdown h4 {
+    color: #ffffff;
+    font-weight: 700;
+    /* Remove any gradient text effects */
+    background: none;
+    -webkit-text-fill-color: initial;
+}
+
+.gr-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+}
+
+.gr-button-primary {
+    background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+
+.gr-button-primary:hover {
+    box-shadow: 0 6px 25px rgba(0, 212, 255, 0.5);
+}
+
+.gr-button-stop {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.gr-button-secondary {
+    background: linear-gradient(135deg, #b794f4 0%, #9467bd 100%);
+    box-shadow: 0 4px 15px rgba(183, 148, 244, 0.3);
+}
+
+/* ===== Input Fields ===== */
+input[type="text"], textarea, .gr-textbox input, .gr-textbox textarea,
+.gr-dropdown, .gr-slider, select {
+    background: rgba(10, 10, 20, 0.8) !important;
+    border: 1px solid rgba(0, 212, 255, 0.2) !important;
+    border-radius: 10px !important;
+    color: #ffffff !important;
+    padding: 10px !important;
+}
+
+input[type="text"]:focus, textarea:focus, .gr-textbox input:focus,
+.gr-textbox textarea:focus {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2) !important;
+    outline: none !important;
+}
+
+/* ===== Chatbot Styling ===== */
+.gr-chatbot {
+    background: rgba(15, 15, 25, 0.95) !important;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.message-wrap {
+    background: transparent !important;
+}
+
+.message.user {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+    border-radius: 18px 18px 4px 18px;
+    color: white !important;
+    padding: 12px 16px;
+    margin: 8px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.message.bot {
+    background: linear-gradient(135deg, rgba(30, 30, 45, 0.95), rgba(25, 25, 40, 0.95));
+    border: 1px solid rgba(0, 212, 255, 0.25);
+    border-radius: 18px 18px 18px 4px;
+    color: #e0e0e0 !important;
+    padding: 12px 16px;
+    margin: 8px;
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
+}
+
+/* ===== Tabs ===== */
+.gr-tabs {
+    background: transparent !important;
+}
+
+.gr-tab-item {
+    background: transparent !important;
+    border-bottom: 2px solid transparent;
+    color: #8a8a8a !important;
+    transition: all 0.3s ease;
+}
+
+.gr-tab-item.selected, .gr-tab-item:hover {
+    color: #00d4ff !important;
+    border-bottom: 2px solid #00d4ff;
+    background: rgba(0, 212, 255, 0.05) !important;
+}
+
+/* ===== Image Upload Area ===== */
+.gr-image-container, .gr-image {
+    border: 2px dashed rgba(0, 212, 255, 0.3) !important;
+    border-radius: 16px;
+    background: rgba(10, 10, 20, 0.5) !important;
+    transition: all 0.3s ease;
+}
+
+.gr-image:hover {
+    border-color: rgba(0, 212, 255, 0.6) !important;
+    background: rgba(10, 10, 20, 0.7) !important;
+}
+
+/* ===== Sliders ===== */
+input[type="range"] {
+    background: transparent !important;
+}
+
+input[type="range"]::-webkit-slider-track {
+    background: linear-gradient(90deg, #00d4ff 0%, #b794f4 100%);
+    height: 6px;
+    border-radius: 3px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    background: #00d4ff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+input[type="range"]::-moz-range-track {
+    background: linear-gradient(90deg, #00d4ff 0%, #b794f4 100%);
+    height: 6px;
+    border-radius: 3px;
+}
+
+input[type="range"]::-moz-range-thumb {
+    background: #00d4ff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* ===== Plots and Graphs ===== */
+.plotly, .js-plotly-plot {
+    background: transparent !important;
+}
+
+.gr-plot {
+    background: rgba(20, 20, 35, 0.8) !important;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    padding: 10px;
+}
+
+/* ===== Loading Animation ===== */
+.gr-loading {
+    background: linear-gradient(90deg, #00d4ff, #b794f4, #00d4ff);
+    background-size: 200% auto;
+    animation: gradient 2s linear infinite;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+/* ===== Scrollbars ===== */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(10, 10, 20, 0.8);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+}
+
+/* ===== Status Badges ===== */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    margin: 4px;
+}
+
+.status-healthy {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+}
+
+.status-warning {
+    background: linear-gradient(135deg, #ffd93d, #ffb800);
+    color: #1a1a2e;
+}
+
+.status-critical {
+    background: linear-gradient(135deg, #ff6b6b, #ff4757);
+    color: white;
+}
+
+/* ===== Info Boxes ===== */
+div[style*="background: rgba(0, 212, 255"] {
+    background: rgba(0, 212, 255, 0.08) !important;
+    border: 1px solid rgba(0, 212, 255, 0.3) !important;
+    color: #00d4ff !important;
+}
+
+/* ===== Code Blocks ===== */
+pre, code {
+    background: rgba(10, 10, 20, 0.8) !important;
+    color: #00d4ff !important;
+    border: 1px solid rgba(0, 212, 255, 0.2) !important;
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+
+/* ===== Animations ===== */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 212, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Utility Classes ===== */
+.glow {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+    .gr-box {
+        padding: 10px;
+    }
+    
+    .status-badge {
+        display: block;
+        width: fit-content;
+        margin: 4px auto;
+    }
+}

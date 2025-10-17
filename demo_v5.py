@@ -1,3 +1,4 @@
+
 #William Starks - Plant Diagnostic MiniGPT, derived from demo_v4.py and modified into a resnet50-wired strawberry pathologist. WIP
 #Gus Marcum - Collaborator: debugging, and system improvements
 

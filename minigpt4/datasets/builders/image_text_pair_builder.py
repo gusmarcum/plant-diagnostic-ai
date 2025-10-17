@@ -124,7 +124,7 @@ class LlavaReasonBuilder(BaseDatasetBuilder):
 
         return datasets
 
-@registry.register_builder("llava_conversation")
+@registry.register_builder("llava_conversation_dead")
 class LlavaReasonBuilder(BaseDatasetBuilder):
     train_dataset_cls = LlavaConversationDataset
     DATASET_CONFIG_DICT = {
@@ -536,3 +536,122 @@ class CCSBUAlignBuilder(BaseDatasetBuilder):
         )
 
         return datasets
+# ---- BEGIN: injected fix for llava_conversation (train+val support) ----
+import logging
+from collections.abc import Mapping
+try:
+    from omegaconf import DictConfig  # optional
+except Exception:
+    DictConfig = tuple()  # fallback, isinstance checks won't match
+
+from minigpt4.datasets.datasets.llava_dataset import LlavaConversationDataset as _LC_Dataset
+from minigpt4.datasets.builders.base_dataset_builder import BaseDatasetBuilder
+from minigpt4.common.registry import registry
+
+@registry.register_builder("llava_conversation_dead2")
+class LlavaConversationBuilderFixed(BaseDatasetBuilder):
+    train_dataset_cls = _LC_Dataset
+    eval_dataset_cls  = _LC_Dataset
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/llava/conversation.yaml"}
+
+    def _get_from(self, cfg, key):
+        if cfg is None:
+            return None
+        # Mapping (dict / OmegaConf)
+        if isinstance(cfg, Mapping) or (DictConfig and isinstance(cfg, DictConfig)):
+            v = cfg.get(key, None)
+            if v is not None:
+                return v
+        # Indexing
+        try:
+            return cfg[key]
+        except Exception:
+            pass
+        # Attribute
+        try:
+            return getattr(cfg, key)
+        except Exception:
+            return None
+
+    def build_datasets(self):
+        logging.info("Building datasets (fixed llava_conversation with train/val support)...")
+        self.build_processors()
+        build_info = self.config.build_info
+        datasets = {}
+
+        ann_paths = getattr(build_info, "ann_paths", None)
+        train_ann = self._get_from(ann_paths, "train") or getattr(build_info, "ann_path", None)
+        val_ann   = self._get_from(ann_paths, "val")
+
+        if train_ann:
+            datasets["train"] = self.train_dataset_cls(
+                vis_processor=self.vis_processors.get("train", self.vis_processors.get("val")),
+                text_processor=self.text_processors.get("train", self.text_processors.get("val")),
+                ann_path=str(train_ann),
+                vis_root=build_info.image_path,
+            )
+
+        if val_ann:
+            datasets["val"] = self.eval_dataset_cls(
+                vis_processor=self.vis_processors.get("val", self.vis_processors.get("train")),
+                text_processor=self.text_processors.get("val", self.text_processors.get("train")),
+                ann_path=str(val_ann),
+                vis_root=build_info.image_path,
+            )
+
+        return datasets
+# ---- END: injected fix ----
+# ---- BEGIN: authoritative llava_conversation (train+val) ----
+import logging
+from collections.abc import Mapping
+try:
+    from omegaconf import DictConfig
+except Exception:
+    DictConfig = type(None)
+
+from minigpt4.common.registry import registry
+from minigpt4.datasets.builders.base_dataset_builder import BaseDatasetBuilder
+from minigpt4.datasets.datasets.llava_dataset import LlavaConversationDataset as _LC
+
+@registry.register_builder("llava_conversation")
+class LlavaConversationBuilder(BaseDatasetBuilder):
+    train_dataset_cls = _LC
+    eval_dataset_cls  = _LC
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/llava/conversation.yaml"}
+
+    def _pick(self, build_info, split):
+        ap = getattr(build_info, "ann_paths", None)
+        if ap is not None and (isinstance(ap, Mapping) or isinstance(ap, DictConfig)):
+            v = ap.get(split)
+            if v: return str(v)
+        if split == "train":
+            v = getattr(build_info, "ann_path", None)
+            if v: return str(v)
+        return None
+
+    def build_datasets(self):
+        logging.info("[llava_conv] Building datasets...")
+        self.build_processors()
+        bi = self.config.build_info
+        train_ann = self._pick(bi, "train")
+        val_ann   = self._pick(bi, "val")
+        logging.info(f"[llava_conv] train_ann={train_ann}")
+        logging.info(f"[llava_conv] val_ann={val_ann}")
+        out = {}
+        if train_ann:
+            out["train"] = self.train_dataset_cls(
+                vis_processor=self.vis_processors.get("train", self.vis_processors.get("val")),
+                text_processor=self.text_processors.get("train", self.text_processors.get("val")),
+                vis_root=bi.image_path,
+                ann_path=train_ann,
+            )
+        if val_ann:
+            out["val"] = self.eval_dataset_cls(
+                vis_processor=self.vis_processors.get("val", self.vis_processors.get("train")),
+                text_processor=self.text_processors.get("val", self.text_processors.get("train")),
+                vis_root=bi.image_path,
+                ann_path=val_ann,
+            )
+        logging.info(f"[llava_conv] built splits: {list(out.keys())}")
+        return out
+# ---- END: authoritative llava_conversation (train+val) ----

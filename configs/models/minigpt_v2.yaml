@@ -1,1 +1,38 @@
-/data/kiriti/MiniGPT-4/minigpt4/configs/models/minigpt_v2.yaml
+# This file is used as a TOP-LEVEL EVAL YAML via --cfg-path.
+# Do NOT point model.model_config back to this same file.
+
+model:
+  arch: minigpt_v2
+  model_type: pretrain
+  # (NO model_config here to avoid self-include recursion)
+  max_txt_len: 256
+  end_sym: ""
+  low_resource: true
+  prompt_template: 'Human: {} Assistant: '
+  ckpt: /data/kiriti/MiniGPT-4/output/minigptv2_finetune/new/checkpoint_9.pth 
+  # was: /data/kiriti/MiniGPT-4/output/minigpt4_stage2_finetune/20250907072/checkpoint_best.pth
+  llama_model: /data/kiriti/MiniGPT-4/llama_weights/Llama-2-7b-chat-hf
+
+  # LoRA / projector toggles (must live under `model:` when this file is used as eval YAML)
+  use_lora: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  tune_mm_mlp_adapter: true
+  freeze_llama: true
+
+preprocess:
+  vis_processor:
+    train: { name: blip2_image_eval, image_size: 448 }
+    val:   { name: blip2_image_eval, image_size: 448 }
+    eval:  { name: blip2_image_eval, image_size: 768 }
+  text_processor:
+    train: { name: blip_caption }
+
+# The config loader expects this root key when used as an eval YAML.
+# For demo/inference, an empty dict is OK.
+datasets: {}
+
+run:
+  task: image_text_pretrain
+
