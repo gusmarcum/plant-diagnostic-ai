@@ -1,206 +1,374 @@
-# MiniGPT-V
+# 🌿 Plant Diagnostic System (MiniGPT‑v2 + ResNet)
 
-<font size='5'>**MiniGPT-v2: Large Language Model as a Unified Interface for Vision-Language Multi-task Learning**</font>
+An advanced **plant diagnostic system** that combines a **ResNet-50** classifier for accurate disease identification with **MiniGPT‑v2** for detailed medical reporting. The system provides comprehensive strawberry plant health analysis with doctor-grade diagnostic reports, confidence scoring, and actionable treatment recommendations.
 
-Jun Chen, Deyao Zhu, Xiaoqian Shen, Xiang Li, Zechun Liu, Pengchuan Zhang, Raghuraman Krishnamoorthi, Vikas Chandra, Yunyang Xiong☨, Mohamed Elhoseiny☨
+> Research prototype. Not medical/agronomic advice.
 
-☨equal last author
+---
 
-<a href='https://minigpt-v2.github.io'><img src='https://img.shields.io/badge/Project-Page-Green'></a> <a href='https://arxiv.org/abs/2310.09478.pdf'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a>  <a href='https://huggingface.co/spaces/Vision-CAIR/MiniGPT-v2'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue'> <a href='https://minigpt-v2.github.io'><img src='https://img.shields.io/badge/Gradio-Demo-blue'></a> [![YouTube](https://badges.aleen42.com/src/youtube.svg)](https://www.youtube.com/watch?v=atFCwV2hSY4)
+## ✨ Features
 
+- **Dual AI Architecture**: ResNet-50 classifier + MiniGPT‑v2 vision-language model
+- **7-Class Disease Detection**: healthy, overwatering, root rot, drought, frost injury, gray mold, white mold
+- **Ground Truth Approach**: ResNet diagnosis is treated as absolute truth, MiniGPT explains the evidence
+- **Confidence Scoring**: Visual confidence indicators (🟢 ≥90%, 🟡 70-90%, 🔴 <70%)
+- **Doctor-Grade Reports**: Structured medical reports with diagnosis, visible cues, and recommendations
+- **Interactive Knowledge Graph**: FAOSTAT agricultural data visualization
+- **Modern Web Interface**: Dark theme with responsive Gradio UI
+- **Real-time Processing**: Optimized for fast inference on single GPU
+- **📷 Webcam Integration**: Live camera feed for instant plant diagnosis
+- **🔍 Enhanced Analysis**: Web research integration for comprehensive treatment recommendations
 
-<font size='5'> **MiniGPT-4: Enhancing Vision-language Understanding with Advanced Large Language Models**</font>
+---
 
-Deyao Zhu*, Jun Chen*, Xiaoqian Shen, Xiang Li, Mohamed Elhoseiny
+## 🧰 Requirements
 
-*equal contribution
+- Python **3.8+**
+- **CUDA GPU** (RTX 3090/4090 recommended for optimal performance)
+- **PyTorch** with CUDA support
+- Model weights (automatically loaded from configured paths):
+  - LLaMA‑2‑7B chat weights: `llama_weights/Llama-2-7b-chat-hf/`
+  - MiniGPT‑v2 checkpoint: `output/minigptv2_strawberry_diagnostic/*/checkpoint_best.pth`
+  - ResNet-50 classifier: `plant_diagnostic/models/resnet_straw_final.pth`
+- **8GB+ VRAM** for smooth operation
+- (Optional) **SERPAPI** key for enhanced web search features
 
-<a href='https://minigpt-4.github.io'><img src='https://img.shields.io/badge/Project-Page-Green'></a>  <a href='https://arxiv.org/abs/2304.10592'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a> <a href='https://huggingface.co/spaces/Vision-CAIR/minigpt4'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue'></a> <a href='https://huggingface.co/Vision-CAIR/MiniGPT-4'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-blue'></a> [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OK4kYsZphwt5DXchKkzMBjYF6jnkqh4R?usp=sharing) [![YouTube](https://badges.aleen42.com/src/youtube.svg)](https://www.youtube.com/watch?v=__tftoxpBAw&feature=youtu.be)
+---
 
-*King Abdullah University of Science and Technology*
-
-## 💡 Get help - [Q&A](https://github.com/Vision-CAIR/MiniGPT-4/discussions/categories/q-a) or [Discord 💬](https://discord.gg/5WdJkjbAeE)
-
-<font size='4'> **Example Community Efforts Built on Top of MiniGPT-4 ** </font> 
-  
-* <a href='https://github.com/waltonfuture/InstructionGPT-4?tab=readme-ov-file'><img src='https://img.shields.io/badge/Project-Page-Green'></a> **InstructionGPT-4**: A 200-Instruction Paradigm for Fine-Tuning MiniGPT-4 Lai Wei, Zihao Jiang, Weiran Huang, Lichao Sun, Arxiv, 2023
-
-* <a href='https://openaccess.thecvf.com/content/ICCV2023W/CLVL/papers/Aubakirova_PatFig_Generating_Short_and_Long_Captions_for_Patent_Figures_ICCVW_2023_paper.pdf'><img src='https://img.shields.io/badge/Project-Page-Green'></a> **PatFig**: Generating Short and Long Captions for Patent Figures.", Aubakirova, Dana, Kim Gerdes, and Lufei Liu, ICCVW, 2023 
-
-
-* <a href='https://github.com/JoshuaChou2018/SkinGPT-4'><img src='https://img.shields.io/badge/Project-Page-Green'></a> **SkinGPT-4**: An Interactive Dermatology Diagnostic System with Visual Large Language Model, Juexiao Zhou and Xiaonan He and Liyuan Sun and Jiannan Xu and Xiuying Chen and Yuetan Chu and Longxi Zhou and Xingyu Liao and Bin Zhang and Xin Gao,  Arxiv, 2023 
-
-
-* <a href='https://huggingface.co/Tyrannosaurus/ArtGPT-4'><img src='https://img.shields.io/badge/Project-Page-Green'></a> **ArtGPT-4**: Artistic Vision-Language Understanding with Adapter-enhanced MiniGPT-4.",  Yuan, Zhengqing, Huiwen Xue, Xinyi Wang, Yongming Liu, Zhuanzhe Zhao, and Kun Wang, Arxiv, 2023 
-
-
-</font>
-
-## News
-[Oct.31 2023] We release the evaluation code of our MiniGPT-v2.  
-
-[Oct.24 2023] We release the finetuning code of our MiniGPT-v2.
-
-[Oct.13 2023] Breaking! We release the first major update with our MiniGPT-v2
-
-[Aug.28 2023] We now provide a llama 2 version of MiniGPT-4
-
-## Online Demo
-
-Click the image to chat with MiniGPT-v2 around your images
-[![demo](figs/minigpt2_demo.png)](https://minigpt-v2.github.io/)
-
-Click the image to chat with MiniGPT-4 around your images
-[![demo](figs/online_demo.png)](https://minigpt-4.github.io)
-
-
-## MiniGPT-v2 Examples
-
-![MiniGPT-v2 demos](figs/demo.png)
-
-
-
-## MiniGPT-4 Examples
-  |   |   |
-:-------------------------:|:-------------------------:
-![find wild](figs/examples/wop_2.png) |  ![write story](figs/examples/ad_2.png)
-![solve problem](figs/examples/fix_1.png)  |  ![write Poem](figs/examples/rhyme_1.png)
-
-More examples can be found in the [project page](https://minigpt-4.github.io).
-
-
-
-## Getting Started
-### Installation
-
-**1. Prepare the code and the environment**
-
-Git clone our repository, creating a python environment and activate it via the following command
+## ⚙️ Setup
 
 ```bash
-git clone https://github.com/Vision-CAIR/MiniGPT-4.git
-cd MiniGPT-4
-conda env create -f environment.yml
-conda activate minigptv
+# Clone the repository
+git clone https://github.com/your-username/plant-diagnostic-system.git
+cd plant-diagnostic-system
+
+# Install PyTorch with CUDA support
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Install required dependencies
+pip install transformers==4.41.1 bitsandbytes gradio pillow numpy pandas plotly networkx python-dotenv timm
+
+# Optional: Install additional dependencies for enhanced features
+pip install serpapi  # For web search features
 ```
 
+**Environment Setup:**
+```bash
+# Set CUDA memory allocation for better performance
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-**2. Prepare the pretrained LLM weights**
-
-**MiniGPT-v2** is based on Llama2 Chat 7B. For **MiniGPT-4**, we have both Vicuna V0 and Llama 2 version.
-Download the corresponding LLM weights from the following huggingface space via clone the repository using git-lfs.
-
-|                            Llama 2 Chat 7B                             |                                           Vicuna V0 13B                                           |                                          Vicuna V0 7B                                          |
-:------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------:
-[Download](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf/tree/main) | [Downlad](https://huggingface.co/Vision-CAIR/vicuna/tree/main) | [Download](https://huggingface.co/Vision-CAIR/vicuna-7b/tree/main) 
-
-
-Then, set the variable *llama_model* in the model config file to the LLM weight path.
-
-* For MiniGPT-v2, set the LLM path 
-[here](minigpt4/configs/models/minigpt_v2.yaml#L15) at Line 14.
-
-* For MiniGPT-4 (Llama2), set the LLM path 
-[here](minigpt4/configs/models/minigpt4_llama2.yaml#L15) at Line 15.
-
-* For MiniGPT-4 (Vicuna), set the LLM path 
-[here](minigpt4/configs/models/minigpt4_vicuna0.yaml#L18) at Line 18
-
-**3. Prepare the pretrained model checkpoints**
-
-Download the pretrained model checkpoints
-
-
-| MiniGPT-v2 (after stage-2) | MiniGPT-v2 (after stage-3) | MiniGPT-v2 (online developing demo)| 
-|------------------------------|------------------------------|------------------------------|
-| [Download](https://drive.google.com/file/d/1Vi_E7ZtZXRAQcyz4f8E6LtLh2UXABCmu/view?usp=sharing) |[Download](https://drive.google.com/file/d/1HkoUUrjzFGn33cSiUkI-KcT-zysCynAz/view?usp=sharing) | [Download](https://drive.google.com/file/d/1aVbfW7nkCSYx99_vCRyP1sOlQiWVSnAl/view?usp=sharing) |
-
-
-For **MiniGPT-v2**, set the path to the pretrained checkpoint in the evaluation config file 
-in [eval_configs/minigptv2_eval.yaml](eval_configs/minigptv2_eval.yaml#L10) at Line 8.
-
-
-
-| MiniGPT-4 (Vicuna 13B) | MiniGPT-4 (Vicuna 7B) | MiniGPT-4 (LLaMA-2 Chat 7B) |
-|----------------------------|---------------------------|---------------------------------|
-| [Download](https://drive.google.com/file/d/1a4zLvaiDBr-36pasffmgpvH5P7CKmpze/view?usp=share_link) | [Download](https://drive.google.com/file/d/1RY9jV0dyqLX-o38LrumkKRh6Jtaop58R/view?usp=sharing) | [Download](https://drive.google.com/file/d/11nAPjEok8eAGGEG1N2vXo3kBLCg0WgUk/view?usp=sharing) |
-
-For **MiniGPT-4**, set the path to the pretrained checkpoint in the evaluation config file 
-in [eval_configs/minigpt4_eval.yaml](eval_configs/minigpt4_eval.yaml#L10) at Line 8 for Vicuna version or [eval_configs/minigpt4_llama2_eval.yaml](eval_configs/minigpt4_llama2_eval.yaml#L10) for LLama2 version.   
-
-
-
-### Launching Demo Locally
-
-For MiniGPT-v2, run
-```
-python demo_v2.py --cfg-path eval_configs/minigptv2_eval.yaml  --gpu-id 0
+# Optional: Set SERPAPI key for enhanced features
+export SERP_API_KEY=your_serpapi_key_here
 ```
 
-For MiniGPT-4 (Vicuna version), run
+---
+
+## 🔧 Configuration
+
+The system uses YAML configuration files for easy setup. Key configuration files:
+
+- **`eval_configs/minigptv2_eval.yaml`** - Demo/inference configuration
+- **`train_configs/minigptv2_strawberry_diagnostic.yaml`** - Training configuration
+
+**Model Paths** (automatically configured):
+- MiniGPT-v2 checkpoint: `output/minigptv2_strawberry_diagnostic/*/checkpoint_best.pth`
+- LLaMA-2-7B weights: `llama_weights/Llama-2-7b-chat-hf/`
+- ResNet-50 classifier: `plant_diagnostic/models/resnet_straw_final.pth`
+
+**Key Configuration Parameters:**
+```yaml
+model:
+  arch: minigpt_v2
+  ckpt: /path/to/checkpoint_best.pth
+  lora_r: 16
+  lora_alpha: 32
+
+run:
+  evaluate: true
+  val_splits: ["val"]
+  max_val_steps: 50
+  auto_val_split_ratio: 0.1
+```
+
+---
+
+## 🚀 Running the System
+
+### **Quick Start with Launch Script**
+
+The easiest way to run the system:
+
+```bash
+# Basic usage
+./launch_demo_v5.sh
+
+# With public share link
+./launch_demo_v5.sh --share
+
+# With ResNet anchor for faster first inference
+./launch_demo_v5.sh --share --resnet-anchor
+
+# Use specific GPU
+./launch_demo_v5.sh --gpu 1 --share
+```
+
+### **Manual Launch**
+
+For more control, run directly:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python demo_v5.py --cfg-path eval_configs/minigptv2_eval.yaml --resnet-anchor
+```
+
+**Parameters:**
+- `--cfg-path`: Points to the evaluation configuration
+- `--resnet-anchor`: Preloads ResNet for faster first inference
+- `--share`: Create public share link (accessible from anywhere)
+- `--gpu-id`: Specify GPU device ID
+- `CUDA_VISIBLE_DEVICES=0`: Uses GPU 0 (adjust as needed)
+- `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`: Optimizes CUDA memory allocation
+
+The system will start a Gradio web interface. Open the provided URL in your browser.
+
+### **📷 Webcam Demo**
+
+Experience real-time plant diagnosis with live camera feed:
+
+[![Webcam Demo](https://img.youtube.com/vi/PXN6_6oj7_M/0.jpg)](https://youtu.be/PXN6_6oj7_M)
+
+**Watch the Demo Video**: [https://youtu.be/PXN6_6oj7_M](https://youtu.be/PXN6_6oj7_M)
+
+**Webcam Features:**
+- **Live Capture**: Click the camera icon to capture images directly from your webcam
+- **Instant Analysis**: Get immediate diagnosis results from captured images
+- **Real-time Processing**: Optimized for fast inference on live camera feed
+- **Browser Integration**: Works seamlessly with modern browsers (Chrome, Firefox, Safari)
+
+**How to Use Webcam:**
+1. Launch the system with `./launch_demo_v5.sh --share`
+2. Open the provided URL in your browser
+3. Click the camera icon in the image upload area
+4. Allow camera access when prompted
+5. Click the camera icon again to capture
+6. Get instant AI-powered plant diagnosis!
+
+### **Training Mode**
+
+Train the MiniGPT-v2 model on strawberry diagnostic data:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 MASTER_PORT=29607 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
+python -m torch.distributed.run --nproc_per_node=2 train.py \
+  --cfg-path train_configs/minigptv2_strawberry_diagnostic.yaml
+```
+
+**Training Features:**
+- **Distributed Training**: Multi-GPU support with `torch.distributed.run`
+- **Automatic Validation Split**: Creates 10% validation from training data
+- **Best Checkpoint Saving**: Saves `checkpoint_best.pth` based on validation loss
+- **Mixed Precision**: TF32 enabled for faster training on Ampere GPUs
+
+---
+
+## 🖥️ Using the Plant Diagnostic System
+
+### **Image Analysis Workflow**
+
+#### **Option 1: Webcam Capture (Recommended)**
+1. **Enable Webcam**: Click the camera icon in the image upload area
+2. **Allow Access**: Grant camera permissions when prompted by your browser
+3. **Capture Image**: Click the camera icon again to capture a live photo
+4. **Adjust Settings**: Use the temperature slider (0.01-0.5) to control response creativity
+5. **Run Analysis**: Click "📤 Send" in the Standard Analysis panel or "🔎 Analyze" in Enhanced Analysis
+
+#### **Option 2: File Upload**
+1. **Upload Image**: Click the image upload area and select a clear photo of your strawberry plant
+2. **Adjust Settings**: Use the temperature slider (0.01-0.5) to control response creativity
+3. **Run Analysis**: Click "📤 Send" in the Standard Analysis panel or "🔎 Analyze" in Enhanced Analysis
+
+### **Understanding the Results**
+
+The system provides structured medical reports with:
+
+**🔍 Diagnosis Section:**
+- **7 Disease Classes**: healthy, overwatering, root rot, drought, frost injury, gray mold, white mold
+- **Confidence Indicators**: 🟢 High (≥90%), 🟡 Medium (70-90%), 🔴 Low (<70%)
+
+**📋 Medical Report Format:**
+```
+1) Diagnosis: [Disease Name]
+2) Visible cues: [Specific visual observations from the image]
+3) Recommendation: [Actionable treatment steps]
+```
+
+**🎯 Best Practices:**
+- **Webcam Usage**: Use webcam for real-time diagnosis - it's faster and more convenient
+- **Image Quality**: Capture clear, well-lit images of affected plant areas
+- **Multiple Angles**: Include both close-ups and full plant views when possible
+- **Temperature Settings**: Use temperature 0.1-0.3 for balanced creativity and accuracy
+- **Enhanced Analysis**: Use Enhanced Analysis for detailed treatment recommendations with web research
+- **Knowledge Graph**: Check the Knowledge Graph tab for related agricultural insights
+
+---
+
+## 🧪 How the System Works
+
+### **Two-Stage AI Pipeline**
+
+1. **ResNet-50 Classification**:
+   - Pre-trained on ImageNet, fine-tuned on strawberry diseases
+   - Uses Test-Time Augmentation (TTA) for robust predictions
+   - Temperature scaling for calibrated confidence scores
+   - Outputs: `{healthy, overwatering, root rot, drought, frost injury, gray mold, white mold}`
+
+2. **MiniGPT-v2 Explanation**:
+   - Vision-language model trained on image-text pairs
+   - Receives ResNet diagnosis as "ground truth"
+   - Generates detailed medical reports explaining the diagnosis
+   - Structured output: diagnosis, visible cues, recommendations
+
+### **Processing Flow**
 
 ```
-python demo.py --cfg-path eval_configs/minigpt4_eval.yaml  --gpu-id 0
+Image Upload → ResNet Classification → Label Mapping → MiniGPT Explanation → Medical Report
 ```
 
-For MiniGPT-4 (Llama2 version), run
+**Key Features:**
+- **Ground Truth Approach**: ResNet diagnosis is treated as absolute truth
+- **No Label Drift**: MiniGPT explains, doesn't override the diagnosis
+- **Confidence Scoring**: Visual indicators based on ResNet confidence
+- **Doctor-Grade Reports**: Structured, professional medical format
+
+---
+
+## 📊 Knowledge Graph
+
+If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the repo root, the **Knowledge Graph** tab renders an interactive Plotly graph. Use **Reload Full Graph** or **Show Crop Neighborhood** to explore.
+
+---
+
+## 📁 Project Structure
 
 ```
-python demo.py --cfg-path eval_configs/minigpt4_llama2_eval.yaml  --gpu-id 0
+Plant Diagnostic System/
+├── demo_v5.py                           # Main Gradio web interface with webcam support
+├── launch_demo_v5.sh                   # Launch script for easy startup
+├── resnet_classifier.py                 # ResNet-50 model and inference (symlink)
+├── train.py                            # Training script
+├── eval_only.py                        # Non-interactive evaluation
+├── eval_holdout.py                     # Holdout evaluation script
+├── demo-editing/                       # Development tools
+│   ├── dev_server.py                   # Hot-reload development server
+│   ├── ui_components.py                # Reusable UI components
+│   └── HOT_RELOAD_README.md            # Development documentation
+├── minigpt4/                           # Core MiniGPT-v2 framework
+│   ├── models/                         # Model architectures
+│   ├── tasks/                          # Training tasks
+│   ├── runners/                        # Training runners
+│   └── datasets/                       # Dataset builders
+├── eval_configs/                       # Inference configurations
+│   └── minigptv2_eval.yaml
+├── train_configs/                      # Training configurations
+│   └── minigptv2_strawberry_diagnostic.yaml
+├── plant_diagnostic/                   # ResNet training and data
+│   ├── models/
+│   │   └── resnet_straw_final.pth     # 7-class ResNet checkpoint
+│   ├── data/                          # Training images
+│   └── datasets/                      # Dataset annotations
+├── llama_weights/                      # LLaMA-2-7B weights
+│   └── Llama-2-7b-chat-hf/
+├── output/                            # Training outputs
+│   └── minigptv2_strawberry_diagnostic/
+├── kg_nodes_faostat.csv               # Knowledge graph nodes
+├── kg_relationships_faostat.csv       # Knowledge graph edges
+├── dark_theme.css                     # UI styling
+└── docs/                              # Documentation
+    └── DEMO_V5_VERIFICATION.md        # System verification report
 ```
 
+---
 
-To save GPU memory, LLMs loads as 8 bit by default, with a beam search width of 1. 
-This configuration requires about 23G GPU memory for 13B LLM and 11.5G GPU memory for 7B LLM. 
-For more powerful GPUs, you can run the model
-in 16 bit by setting `low_resource` to `False` in the relevant config file:
+## 🧩 Technical Details
 
-* MiniGPT-v2: [minigptv2_eval.yaml](eval_configs/minigptv2_eval.yaml#6) 
-* MiniGPT-4 (Llama2): [minigpt4_llama2_eval.yaml](eval_configs/minigpt4_llama2_eval.yaml#6)
-* MiniGPT-4 (Vicuna): [minigpt4_eval.yaml](eval_configs/minigpt4_eval.yaml#6)
+### **Model Architecture**
+- **ResNet-50**: ImageNet pre-trained, fine-tuned on 7-class strawberry dataset
+- **MiniGPT-v2**: Vision-language model with LLaMA-2-7B backbone
+- **LoRA Fine-tuning**: Efficient adaptation with rank-16 LoRA adapters
 
-Thanks [@WangRongsheng](https://github.com/WangRongsheng), you can also run MiniGPT-4 on [Colab](https://colab.research.google.com/drive/1OK4kYsZphwt5DXchKkzMBjYF6jnkqh4R?usp=sharing)
+### **Performance Optimizations**
+- **TF32 Precision**: Enabled for faster training on Ampere GPUs
+- **Mixed Precision Training**: Automatic mixed precision with gradient scaling
+- **CUDA Memory Management**: Expandable segments for better memory utilization
+- **Test-Time Augmentation**: Horizontal flip for robust ResNet predictions
 
+### **Training Features**
+- **Automatic Validation Split**: 10% holdout from training data
+- **Best Checkpoint Saving**: Saves model with lowest validation loss
+- **Gradient Clipping**: Prevents exploding gradients
+- **Learning Rate Scheduling**: Cosine annealing with warmup
 
-### Training
-For training details of MiniGPT-4, check [here](MiniGPT4_Train.md).
+---
 
-For finetuning details of MiniGPT-v2, check [here](MiniGPTv2_Train.md)
+## 🔧 Troubleshooting
 
+### **Common Issues**
 
-### Evaluation
-For finetuning details of MiniGPT-v2, check [here](eval_scripts/EVAL_README.md)  
+#### **Webcam Issues**
+- **Camera permissions**: Ensure browser has camera access when prompted
+- **Camera in use**: Close other applications using the camera (Zoom, Teams, etc.)
+- **Browser compatibility**: Use Chrome/Firefox for best results (Safari also supported)
+- **HTTPS required**: Some browsers require HTTPS for camera access (use `--share` flag)
+- **Camera not detected**: Check if camera is connected and not being used by other apps
 
+#### **Model Loading Issues**
+- **Check paths**: Verify model files exist in expected locations
+- **CUDA availability**: Ensure CUDA is properly installed
+- **Dependencies**: Install all required packages
+- **Memory**: Ensure sufficient GPU memory (8GB+ recommended)
 
-## Acknowledgement
+#### **Performance Issues**
+- **Slow inference**: Use `--resnet-anchor` flag for faster first inference
+- **Memory errors**: Reduce image size or use CPU mode
+- **Webcam lag**: Close other applications to free up system resources
 
-+ [BLIP2](https://huggingface.co/docs/transformers/main/model_doc/blip-2) The model architecture of MiniGPT-4 follows BLIP-2. Don't forget to check this great open-source work if you don't know it before!
-+ [Lavis](https://github.com/salesforce/LAVIS) This repository is built upon Lavis!
-+ [Vicuna](https://github.com/lm-sys/FastChat) The fantastic language ability of Vicuna with only 13B parameters is just amazing. And it is open-source!
-+ [LLaMA](https://github.com/facebookresearch/llama) The strong open-sourced LLaMA 2 language model.
+---
 
+## 🗺️ Future Enhancements
 
-If you're using MiniGPT-4/MiniGPT-v2 in your research or applications, please cite using this BibTeX:
+- **Multi-Crop Support**: Expand beyond strawberries to other crops
+- **Advanced Augmentation**: More sophisticated data augmentation strategies
+- **Real-time Processing**: Optimize for mobile/edge deployment
+- **Confidence Calibration**: Improve uncertainty quantification
+- **Export Features**: JSON/CSV export for dataset analysis
+- **Docker Deployment**: Containerized deployment option
+
+---
+
+## 📜 License & Credits
+
+This project builds upon:
+- **MiniGPT-v2**: Vision-language model framework
+- **LLaMA-2**: Language model backbone
+- **ResNet**: Image classification architecture
+- **FAOSTAT**: Agricultural knowledge graph data
+
+Please respect upstream licenses and dataset terms of use.
+
+---
+
+## 📚 Citation
+
 ```bibtex
-
-
-@article{chen2023minigptv2,
-      title={MiniGPT-v2: large language model as a unified interface for vision-language multi-task learning}, 
-      author={Chen, Jun and Zhu, Deyao and Shen, Xiaoqian and Li, Xiang and Liu, Zechu and Zhang, Pengchuan and Krishnamoorthi, Raghuraman and Chandra, Vikas and Xiong, Yunyang and Elhoseiny, Mohamed},
-      year={2023},
-      journal={arXiv preprint arXiv:2310.09478},
-}
-
-@article{zhu2023minigpt,
-  title={MiniGPT-4: Enhancing Vision-Language Understanding with Advanced Large Language Models},
-  author={Zhu, Deyao and Chen, Jun and Shen, Xiaoqian and Li, Xiang and Elhoseiny, Mohamed},
-  journal={arXiv preprint arXiv:2304.10592},
-  year={2023}
+@software{plant_diagnostic_system,
+  title  = {Plant Diagnostic System: AI-Powered Strawberry Disease Detection},
+  author = {William Starks, Kiriti Vundavilli},
+  year   = {2025},
+  note   = {GitHub repository: Advanced plant health analysis with ResNet + MiniGPT-v2}
 }
 ```
 
+---
 
-## License
-This repository is under [BSD 3-Clause License](LICENSE.md).
-Many codes are based on [Lavis](https://github.com/salesforce/LAVIS) with 
-BSD 3-Clause License [here](LICENSE_Lavis.md).
+## 🧪 Summary
+
+The Plant Diagnostic System combines ResNet-50 classification with MiniGPT-v2 explanation to provide accurate, doctor-grade strawberry plant health analysis. The system treats ResNet predictions as ground truth and generates structured medical reports with confidence scoring and actionable recommendations.
