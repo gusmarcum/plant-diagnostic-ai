@@ -4,14 +4,6 @@ An advanced **plant diagnostic system** that combines a **ResNet-50** classifier
 
 > Research prototype. Not medical/agronomic advice.
 
-## 🎥 Demonstration Videos
-
-### Main Demo (demo_v5)
-[![Demo v5 - Plant Diagnostic System](https://img.youtube.com/vi/eduSbkigjLY/0.jpg)](https://youtu.be/eduSbkigjLY?si=24JHh-qNNbvROLdD)
-
-### Webcam and Unknown Scenario Demo
-[![Webcam and Unknown Scenario Demo](https://img.youtube.com/vi/PXN6_6oj7_M/0.jpg)](https://youtu.be/PXN6_6oj7_M)
-
 ---
 
 ## ✨ Features
@@ -266,6 +258,12 @@ If `kg_nodes_faostat.csv` and `kg_relationships_faostat.csv` are present in the 
 
 ### Plant Diagnostic Project Overview
 [![Plant Diagnostic Project Demo](https://img.youtube.com/vi/-QEf8KkALK4/0.jpg)](https://youtu.be/-QEf8KkALK4?si=mVatePAGOcpFYOXw)
+
+### Current Demo (demo_v5)
+[![Demo v5 - Plant Diagnostic System](https://img.youtube.com/vi/eduSbkigjLY/0.jpg)](https://youtu.be/eduSbkigjLY?si=24JHh-qNNbvROLdD)
+
+### Webcam Functionality and Unknown Scenario Feature
+[![Webcam and Unknown Scenario Demo](https://img.youtube.com/vi/PXN6_6oj7_M/0.jpg)](https://youtu.be/PXN6_6oj7_M)
 
 ---
 
